@@ -8,37 +8,17 @@ import {
 } from '@/components/nodes/VFNodeInterface'
 
 import VFNode from '@/components/nodes/VFNodeClass'
-const node = ref(new VFNode("asd", "qwe", "zxc"))
-node.value.setNodeFlag(0x01)
-node.value.setMinSize(100, 100)
-node.value.label = "New Label"
-node.value.initConnectionsAttribute()
-node.value.addHandle(VFNodeConnectionType.inputs, "input")
-node.value.addHandle(VFNodeConnectionType.outputs, "output")
-node.value.addHandle(VFNodeConnectionType.callbackUsers, "callbackUser")
-node.value.addHandle(VFNodeConnectionType.callbackFuncs, "callbackFunc")
-node.value.initNestedAttribute()
-node.value.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_input)
-node.value.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_output)
-node.value.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_next)
-node.value.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_callbackUser)
-node.value.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_callbackFunc)
-node.value.initPayloads()
-node.value.initResults()
-node.value.addHandleData(VFNodeConnectionType.self, "self", { type: VFNodeConnectionDataType.FromOuter, inputKey: "input" })
-let pid = node.value.addPayload({ label: "迭代1", type: "List", key: "iter_list", data: "", hid: "", oid: "", config: {}, uitype: "iter_input" }, 'D_ITERLIST');
-node.value.addHandleData(VFNodeConnectionType.attach, "attach", { type: VFNodeConnectionDataType.FromInner, path: ["payloads", pid] })
-pid = node.value.addPayload({ label: "迭代2", type: "List", key: "iter_list", data: "", hid: "", oid: "", config: {}, uitype: "iter_input" }, 'D_ITERLIST2');
-node.value.addHandleData(VFNodeConnectionType.attach, "attach", { type: VFNodeConnectionDataType.FromInner, path: ["payloads", pid] })
-node.value.addResultWConnect({ label: "迭代1", type: "List", key: "iter_list", data: "", hid: "", oid: "", config: {}, uitype: "iter_input" }, "output", 'D_ITERLIST123')
-node.value.initState()
-node.value.initConfig()
-node.value.setOutputsUIType("iter_output")
+import { createNode as createNode_code_interpreter } from '@/components/nodes/all_nodes_ts/code_interpreter'
+import { createNode as createNode_jinja2_template } from '@/components/nodes/all_nodes_ts/jinja2_template'
+const node1 = createNode_code_interpreter()
+const node2 = createNode_jinja2_template()
+const nodes = ref([node1, node2])
+node1.payloads!.byId['D_CODE'].data = 2
 </script>
 
 <template>
   <pre>
-    {{ node }}
+    {{ nodes }}
   </pre>
 </template>
 

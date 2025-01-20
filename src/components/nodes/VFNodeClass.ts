@@ -4,8 +4,6 @@ import type {
   VFNodeHandleData,
   VFNodeHandle,
   VFNodeConnections,
-  VFNodeFlag,
-  VFNodeAttachingPos,
   VFNodeAttaching,
   VFNodeAttachedNode,
   VFNodePadding,
@@ -20,6 +18,8 @@ import {
   VFNodeConnectionDataType,
   VFNodeConnectionDataAttachedType,
   VFNodeConnectionType,
+  VFNodeFlag,
+  VFNodeAttachingPos,
   VFNodeAttachingType,
 } from '@/components/nodes/VFNodeInterface'
 
@@ -126,6 +126,11 @@ class VFNode implements VFNodeData {
   setMinSize(width: number, height: number): void {
     this.min_size = { width, height }
   }
+
+  setSize(width: number, height: number): void {
+    this.size = { width, height }
+  }
+
   setNodeFlag(flag: number): void {
     this.flag = flag
   }
@@ -249,21 +254,25 @@ class VFNode implements VFNodeData {
     did: string | null = null,
   ): string {
     const _rid = rid || getUuid()
-    const oid = this.addHandleData(
+    const _did = this.addHandleData(
       VFNodeConnectionType.outputs,
       hid,
       { type: VFNodeConnectionDataType.FromInner, path: ['results', _rid], useid: [] },
       did,
     )
-    this.addResult({ ...result, hid, oid }, _rid)
+    this.addResult({ ...result, hid, did: _did }, _rid)
     return _rid
   }
 
   rmResultWConnect(rid: string): void {
     if (this.results && this.results.byId.hasOwnProperty(rid)) {
       const hid = this.results.byId[rid].hid
-      const oid = this.results.byId[rid].oid
-      this.rmHandleData(VFNodeConnectionType.outputs, hid, oid)
+      const did = this.results.byId[rid].did
+      if (!hid || !did) {
+        console.error('Result has no hid or did')
+        return
+      }
+      this.rmHandleData(VFNodeConnectionType.outputs, hid, did)
       delete this.results.byId[rid]
       this.results.order.splice(this.results.order.indexOf(rid), 1)
     }

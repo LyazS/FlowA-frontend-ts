@@ -1,21 +1,4 @@
 import { getUuid } from '@/components/utils/tools.ts'
-
-interface VFNodeContentData {
-  label: string
-  type: string
-  key: string
-  data: any
-  config: any
-  hid: string
-  oid: string
-  uitype?: string
-}
-
-interface VFNodeContents {
-  byId: Record<string, VFNodeContentData>
-  order: string[]
-}
-
 enum VFNodeConnectionDataType {
   FromOuter = 'FromOuter',
   FromAttached = 'FromAttached',
@@ -30,15 +13,6 @@ enum VFNodeConnectionDataAttachedType {
   attached_node_next = 'attached_node_next',
   attached_node_callbackFunc = 'attached_node_callbackFunc',
 }
-
-interface VFNodeHandleData {
-  type: VFNodeConnectionDataType
-  inputKey?: string
-  atype?: VFNodeConnectionDataAttachedType
-  path?: (string | number)[]
-  useid?: string[]
-}
-
 enum VFNodeConnectionType {
   self = 'self',
   attach = 'attach',
@@ -48,17 +22,6 @@ enum VFNodeConnectionType {
   callbackUsers = 'callbackUsers',
   callbackFuncs = 'callbackFuncs',
 }
-
-interface VFNodeHandle {
-  label: string
-  data: Record<string, VFNodeHandleData>
-}
-
-type VFNodeConnections = {
-  // 连接类型：handleID：{handle标签，handle数据}
-  [key in VFNodeConnectionType]: Record<string, VFNodeHandle>
-}
-
 enum VFNodeFlag {
   isNested = 0x01,
   isAttached = 0x02,
@@ -78,6 +41,41 @@ enum VFNodeAttachingPos {
   right = 'right',
   center = 'center',
 }
+
+interface VFNodeContentData {
+  label: string
+  type: string
+  key: string
+  data: any
+  config?: any
+  hid?: string
+  did?: string
+  uitype?: string
+}
+
+interface VFNodeContents {
+  byId: Record<string, VFNodeContentData>
+  order: string[]
+}
+
+interface VFNodeHandleData {
+  type: VFNodeConnectionDataType
+  inputKey?: string
+  atype?: VFNodeConnectionDataAttachedType
+  path?: (string | number)[]
+  useid?: string[]
+}
+
+interface VFNodeHandle {
+  label: string
+  data: Record<string, VFNodeHandleData>
+}
+
+type VFNodeConnections = {
+  // 连接类型：handleID：{handle标签，handle数据}
+  [key in VFNodeConnectionType]: Record<string, VFNodeHandle>
+}
+
 interface VFNodeAttaching {
   type: VFNodeAttachingType
   pos: [VFNodeAttachingPos, VFNodeAttachingPos]
@@ -144,8 +142,6 @@ export type {
   VFNodeHandleData,
   VFNodeHandle,
   VFNodeConnections,
-  VFNodeFlag,
-  VFNodeAttachingPos,
   VFNodeAttaching,
   VFNodeAttachedNode,
   VFNodePadding,
@@ -159,5 +155,7 @@ export {
   VFNodeConnectionDataType,
   VFNodeConnectionDataAttachedType,
   VFNodeConnectionType,
+  VFNodeFlag,
+  VFNodeAttachingPos,
   VFNodeAttachingType,
 }
