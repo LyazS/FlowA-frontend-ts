@@ -7,41 +7,57 @@
     </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onBeforeUnmount, onUnmounted, watch } from 'vue';
-import { Position, Handle, useVueFlow } from '@vue-flow/core'
-const { findNode } = useVueFlow();
-const props = defineProps(['id', 'data']);
-const thisnode = findNode(props.id);
-const [yPart, xPart] = props.data.attaching.pos.split('-');
+<script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { Position, Handle, useVueFlow, type Node, type HandleType } from '@vue-flow/core'
+import { type VFNodeData, VFNodeAttachingPos, VFNodeAttachingType } from "@/components/nodes/VFNodeInterface"
 
-const posLR = xPart === 'left' ? Position.Right : Position.Left;
-const node_text = props.data.attaching.label;
-const handle_style = xPart === 'left' ? { right: '2px' } : { left: '2px' };
-const justCont = xPart === 'left' ? 'flex-start' : 'flex-end';
+interface Props {
+    id: string
+    data: VFNodeData
+}
 
-let handle_type = null;
-let handle_id = null;
-if (props.data.attaching.type === 'output') {
-    handle_type = 'target';
-    handle_id = 'input';
-}
-else if (props.data.attaching.type === 'input') {
-    handle_type = 'source';
-    handle_id = 'output';
-}
-else if (props.data.attaching.type === 'callbackFunc') {
-    handle_type = 'source';
-    handle_id = 'callbackUser';
-}
-else if (props.data.attaching.type === 'callbackUser') {
-    handle_type = 'target';
-    handle_id = 'callbackFunc';
-}
+const props = defineProps<Props>()
+const { findNode } = useVueFlow()
+const thisnode = findNode(props.id) as Node
+
+// 解构获取位置信息
+const [yPart, xPart] = props.data.attaching!.pos
+
+// 计算属性
+const posLR = computed(() => xPart === VFNodeAttachingPos.left ? Position.Right : Position.Left)
+const node_text = computed(() => props.data.attaching!.label)
+const handle_style = computed(() => xPart === VFNodeAttachingPos.left ? { right: '2px' } : { left: '2px' })
+const justCont = computed(() => xPart === VFNodeAttachingPos.left ? 'flex-start' : 'flex-end')
+
+// 处理 handle 类型
+type HandleId = 'input' | 'output' | 'callbackUser' | 'callbackFunc'
+
+const handle_type = computed<HandleType>(() => {
+    switch (props.data.attaching!.type) {
+        case VFNodeAttachingType.output: return 'target'
+        case VFNodeAttachingType.input: return 'source'
+        case VFNodeAttachingType.callbackFunc: return 'source'
+        case VFNodeAttachingType.callbackUser: return 'target'
+        default: return 'source'
+    }
+})
+
+const handle_id = computed<HandleId>(() => {
+    switch (props.data.attaching!.type) {
+        case VFNodeAttachingType.output: return 'input'
+        case VFNodeAttachingType.input: return 'output'
+        case VFNodeAttachingType.callbackFunc: return 'callbackUser'
+        case VFNodeAttachingType.callbackUser: return 'callbackFunc'
+        default: return 'output'
+    }
+})
+
 onMounted(() => {
-    thisnode.class = "vue-flow__node-attached_node";
-});
-
+    if (thisnode) {
+        thisnode.class = "vue-flow__node-attached_node"
+    }
+})
 </script>
 
 <style>

@@ -24,7 +24,7 @@ import {
 } from '@/components/nodes/VFNodeInterface'
 
 import { cloneDeep } from 'lodash'
-import { getUuid } from '@/components/utils/tools.ts'
+import { getUuid } from '@/utils/tools'
 
 class VFNode implements VFNodeData {
   ntype: string

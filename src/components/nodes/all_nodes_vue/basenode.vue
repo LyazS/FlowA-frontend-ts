@@ -48,181 +48,192 @@
 
         <div class="center-text" ref="hiddenText"
             :style="{ position: 'absolute', top: `${center_text_pos.top}px`, left: '50%', transform: `translate(-50%, ${center_text_pos.trfY}%)` }">
-            {{ thisnode.data.label }}
+            {{ props.data.label }}
         </div>
         <n-flex v-if="isShowCopyCount" justify="center"
             :style="{ flexWrap: 'nowrap', position: 'absolute', top: `${center_text_pos.top}px`, left: '50%', transform: `translate(-50%,  ${center_text_pos.copCountY}%) translate(0,  10px)` }">
-            <div class="state-text" style="color: #70c0e8;"> {{ thisnode.data.state.copyCount.Running }}</div>
+            <div class="state-text" style="color: #70c0e8;"> {{ data.state!.copyCount.Running }}</div>
             <div class="state-text" style="color: white;"> /</div>
-            <div class="state-text" style="color: #63e2b7;"> {{ thisnode.data.state.copyCount.Success }}</div>
+            <div class="state-text" style="color: #63e2b7;"> {{ data.state!.copyCount.Success }}</div>
             <div class="state-text" style="color: white;"> /</div>
-            <div class="state-text" style="color: #e88080;"> {{ thisnode.data.state.copyCount.Error }}</div>
+            <div class="state-text" style="color: #e88080;"> {{ data.state!.copyCount.Error }}</div>
         </n-flex>
     </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, nextTick, onBeforeUnmount, onUnmounted, watch } from 'vue';
-import { debounce } from 'lodash';
+<script setup lang="ts">
+import { ref, computed, onMounted, nextTick, watch, type Ref } from 'vue'
+import { debounce } from 'lodash'
 import { NFlex } from 'naive-ui'
-import { Position, Handle, useVueFlow } from '@vue-flow/core'
-import { nodeFlags } from '@/utils/schemas'
-const { findNode } = useVueFlow();
-const props = defineProps(['id'])
-const thisnode = findNode(props.id);
+import { Position, Handle, useVueFlow, type Node } from '@vue-flow/core'
+import { type VFNodeData, VFNodeFlag, VFNodeAttachingPos, VFNodeAttachingType } from "@/components/nodes/VFNodeInterface"
 
-const handle_h_pad = 1;
-const handle_h_gap = 8;
-const handle_text_edge_pad = 6;
-const label_gap = 15;
+interface HandleData {
+    key: string
+    label: string
+}
 
-const inputHandles = computed(() => {
-    return Object.entries(thisnode.data.connections.inputs)
+const props = defineProps<{
+    id: string
+    data: VFNodeData
+}>()
+
+const { findNode } = useVueFlow()
+const thisnode = findNode(props.id) as Node
+
+const handle_h_pad = 1
+const handle_h_gap = 8
+const handle_text_edge_pad = 6
+const label_gap = 15
+
+const inputHandles = computed<HandleData[]>(() => {
+    return Object.entries(props.data.connections!.inputs)
         .map(([key, value]) => ({ key, label: value.label }))
-        .sort((a, b) => a.key.localeCompare(b.key));
-});
+        .sort((a, b) => a.key.localeCompare(b.key))
+})
 
-const outputHandles = computed(() => {
-    const pattern = /^\d+\/[^/]*$/;
-    // 先对数据进行排序
-    const sortedEntries = Object.entries(thisnode.data.connections.outputs)
+const outputHandles = computed<HandleData[]>(() => {
+    const pattern = /^\d+\/[^/]*$/
+    const sortedEntries = Object.entries(props.data.connections!.outputs)
         .sort(([aKey, aValue], [bKey, bValue]) => {
             if (pattern.test(aValue.label) && pattern.test(bValue.label)) {
-                const a_num = parseInt(aValue.label.split('/')[0]);
-                const b_num = parseInt(bValue.label.split('/')[0]);
-                return b_num - a_num;
+                const a_num = parseInt(aValue.label.split('/')[0])
+                const b_num = parseInt(bValue.label.split('/')[0])
+                return b_num - a_num
             } else {
-                return aKey.localeCompare(bKey);
+                return aKey.localeCompare(bKey)
             }
-        });
+        })
 
-    // 然后对排序后的数据进行映射
-    return sortedEntries.map(([key, value]) => {
-        if (pattern.test(value.label)) {
-            return { key, label: value.label.split('/')[1] };
-        }
-        else {
-            return { key, label: value.label };
-        }
-    });
-});
+    return sortedEntries.map(([key, value]) => ({
+        key,
+        label: pattern.test(value.label) ? value.label.split('/')[1] : value.label
+    }))
+})
 
-const cbfuncHandles = computed(() => {
-    return Object.entries(thisnode.data.connections.callbackFuncs)
+const cbfuncHandles = computed<HandleData[]>(() => {
+    return Object.entries(props.data.connections!.callbackFuncs)
         .map(([key, value]) => ({ key, label: value.label }))
-        .sort((a, b) => a.key.localeCompare(b.key));
-});
+        .sort((a, b) => a.key.localeCompare(b.key))
+})
 
-const cbuserHandles = computed(() => {
-    return Object.entries(thisnode.data.connections.callbackUsers)
+const cbuserHandles = computed<HandleData[]>(() => {
+    return Object.entries(props.data.connections!.callbackUsers)
         .map(([key, value]) => ({ key, label: value.label }))
-        .sort((a, b) => a.key.localeCompare(b.key));
-});
+        .sort((a, b) => a.key.localeCompare(b.key))
+})
 
-const max_handles_top = computed(() => {
-    return Math.max(inputHandles.value.length, cbuserHandles.value.length);
-});
-const max_handles_bottom = computed(() => {
-    return Math.max(outputHandles.value.length, cbfuncHandles.value.length);
-});
+const max_handles_top = computed(() =>
+    Math.max(inputHandles.value.length, cbuserHandles.value.length)
+)
+
+const max_handles_bottom = computed(() =>
+    Math.max(outputHandles.value.length, cbfuncHandles.value.length)
+)
+
 const center_text_pos = computed(() => {
-    if (nodeFlags.isNested & thisnode.data.flag)
-        return { top: 0, trfY: 0, copCountY: 50 }
-    else
-        return { top: handle_h_pad + max_handles_top.value * handle_h_gap + 10, trfY: -50, copCountY: -50 };
-});
-const hiddenText = ref(null); // 隐藏测量元素的引用
-
-const isShowCopyCount = computed(() => {
-    // return true;
-    return Object.keys(thisnode.data.state.copy).length > 0;
-});
-const countCopy = (statecopy) => {
-    let copyRunning = 0;
-    let copySuccess = 0;
-    let copyError = 0;
-    for (const cid in statecopy) {
-        if (statecopy.hasOwnProperty(cid)) {
-            const sc = statecopy[cid];
-            if (sc.status === 'Running' || sc.status === 'Pending') {
-                copyRunning++;
-            }
-            else if (sc.status === 'Success') {
-                copySuccess++;
-            }
-            else if (sc.status === 'Error' || sc.status === 'Canceled') {
-                copyError++;
-            }
+    return (VFNodeFlag.isNested & props.data.flag)
+        ? { top: 0, trfY: 0, copCountY: 50 }
+        : {
+            top: handle_h_pad + max_handles_top.value * handle_h_gap + 10,
+            trfY: -50,
+            copCountY: -50
         }
+})
+
+const hiddenText: Ref<HTMLDivElement | null> = ref(null)
+
+const isShowCopyCount = computed(() =>
+    Object.keys(props.data.state!.copy).length > 0
+)
+
+const countCopy = (statecopy: Record<string, { status: string }>) => {
+    let copyRunning = 0
+    let copySuccess = 0
+    let copyError = 0
+
+    Object.values(statecopy).forEach(sc => {
+        if (sc.status === 'Running' || sc.status === 'Pending') {
+            copyRunning++
+        } else if (sc.status === 'Success') {
+            copySuccess++
+        } else if (sc.status === 'Error' || sc.status === 'Canceled') {
+            copyError++
+        }
+    })
+
+    props.data.state!.copyCount = {
+        Running: copyRunning,
+        Success: copySuccess,
+        Error: copyError
     }
-    thisnode.data.state.copyCount.Running = copyRunning;
-    thisnode.data.state.copyCount.Success = copySuccess;
-    thisnode.data.state.copyCount.Error = copyError;
 
     if (copyRunning > 0) {
-        thisnode.data.state.status = 'Running';
+        props.data.state!.status = 'Running'
+    } else if (copyError > 0) {
+        props.data.state!.status = 'Error'
+    } else if (copySuccess > 0) {
+        props.data.state!.status = 'Success'
+    } else {
+        props.data.state!.status = 'Default'
     }
-    else if (copyError > 0) {
-        thisnode.data.state.status = 'Error';
-    }
-    else if (copySuccess > 0) {
-        thisnode.data.state.status = 'Success';
-    }
-    else {
-        thisnode.data.state.status = 'Default';
-    }
-};
-const debouncedCountCopy = debounce(countCopy, 500);
+}
+
+const debouncedCountCopy = debounce(countCopy, 500)
+
 onMounted(() => {
-    watch(() => thisnode.data.state.copy, (newValue) => {
-        debouncedCountCopy(newValue);
-    }, { deep: true })
+    watch(
+        () => props.data.state!.copy,
+        (newValue) => {
+            debouncedCountCopy(newValue)
+        },
+        { deep: true }
+    )
 
+    if (!(VFNodeFlag.isNested & props.data.flag)) {
+        watch(
+            [max_handles_top, max_handles_bottom],
+            ([newtop, newbottom]) => {
+                const node_ht = 30 + (newtop + newbottom) * handle_h_gap
+                thisnode.height = `${node_ht}px`
+                props.data.size.height = node_ht
+            },
+            { immediate: true }
+        )
 
-    if (!(nodeFlags.isNested & thisnode.data.flag)) {
-        watch(() => [max_handles_top.value, max_handles_bottom.value], (newValues) => {
-            const [newtop, newbottom] = newValues;
-            const node_ht = 30 + (newtop + newbottom) * handle_h_gap;
-            thisnode.style.height = `${node_ht}px`;
-            thisnode.data.size.height = node_ht;
-        }, { immediate: true })
-        watch(() => thisnode.data.label, async (newLabel) => {
-            await nextTick(
-                () => {
+        watch(
+            () => props.data.label,
+            async (newLabel) => {
+                await nextTick(() => {
                     if (hiddenText.value && newLabel !== '') {
-                        const node_wd = hiddenText.value.offsetWidth + label_gap * 2;
-                        thisnode.style.width = `${node_wd}px`;
-                        thisnode.data.size.width = node_wd;
+                        const node_wd = hiddenText.value.offsetWidth + label_gap * 2
+                        thisnode.width = `${node_wd}px`
+                        props.data.size.width = node_wd
                     }
+                })
+            },
+            { immediate: true }
+        )
+
+        watch(
+            () => props.data.state!.status,
+            (newStatus) => {
+                const statusClasses = {
+                    Default: 'node-status-default',
+                    Pending: 'node-status-pending',
+                    Running: 'node-status-running',
+                    Success: 'node-status-success',
+                    Canceled: 'node-status-canceled',
+                    Error: 'node-status-error'
                 }
-            );
-        }, { immediate: true })
-        watch(() => thisnode.data.state.status, async (newStatus) => {
-            if (newStatus === 'Default') {
-                thisnode.class = 'node-status-default';
-            }
-            else if (newStatus === 'Pending') {
-                thisnode.class = 'node-status-pending';
-            }
-            else if (newStatus === 'Running') {
-                thisnode.class = 'node-status-running';
-            }
-            else if (newStatus === 'Success') {
-                thisnode.class = 'node-status-success';
-            }
-            else if (newStatus === 'Canceled') {
-                thisnode.class = 'node-status-canceled';
-            }
-            else if (newStatus === 'Error') {
-                thisnode.class = 'node-status-error';
-            }
-        }, { immediate: true })
-
+                thisnode.class = statusClasses[newStatus as keyof typeof statusClasses]
+            },
+            { immediate: true }
+        )
     }
-    else { }
-});
-
+})
 </script>
+
 
 <style>
 .node-status-default,

@@ -1,4 +1,3 @@
-import { getUuid } from '@/components/utils/tools.ts'
 enum VFNodeConnectionDataType {
   FromOuter = 'FromOuter',
   FromAttached = 'FromAttached',
