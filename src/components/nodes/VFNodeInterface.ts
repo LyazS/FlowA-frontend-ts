@@ -77,7 +77,7 @@ type VFNodeConnections = {
 
 interface VFNodeAttaching {
   type: VFNodeAttachingType
-  pos: [VFNodeAttachingPos, VFNodeAttachingPos]
+  pos: [VFNodeAttachingPos, number, VFNodeAttachingPos, number]
   label: string
 }
 
@@ -99,6 +99,7 @@ interface VFNodeSize {
 }
 
 interface VFNodeNesting {
+  tag: string
   pad: VFNodePadding
   attached_pad: VFNodePadding
   attached_nodes: Partial<Record<VFNodeConnectionDataAttachedType, VFNodeAttachedNode>>

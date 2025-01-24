@@ -5,17 +5,15 @@
 @import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css';
 
 :root {
-  --font-sans-serif: -apple-system, BlinkMacSystemFont, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Segoe UI", "PingFang SC",
-    HarmonyOS_Regular, "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue",
-    Helvetica, "Source Han Sans SC", "Noto Sans CJK SC", "WenQuanYi Micro Hei",
-    Arial, sans-serif;
-  --font-serif: STZhongsong, STSong, "Noto Serif CJK", "Noto Serif SC", PMingLiu,
-    SimSun, "WenQuanYi Bitmap Song", "Times New Roman", Times, serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Code",
-    "Segoe UI Mono", "Source Code Pro", Menlo, Consolas, "Liberation Mono",
-    monospace;
+  --font-sans-serif: -apple-system, BlinkMacSystemFont, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Segoe UI', 'PingFang SC', HarmonyOS_Regular, 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, 'Source Han Sans SC', 'Noto Sans CJK SC',
+    'WenQuanYi Micro Hei', Arial, sans-serif;
+  --font-serif: STZhongsong, STSong, 'Noto Serif CJK', 'Noto Serif SC', PMingLiu, SimSun,
+    'WenQuanYi Bitmap Song', 'Times New Roman', Times, serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol';
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', 'Cascadia Code', 'Segoe UI Mono',
+    'Source Code Pro', Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
 html,
@@ -48,9 +46,12 @@ body,
 .vue-flow__node:hover {
   --color: rgb(138, 203, 236);
   border: 2px solid var(--color);
-  box-shadow: 0 0 10px  var(--color),
+  box-shadow:
+    0 0 10px var(--color),
     inset 0 0 3px 1px var(--color);
-  transition: box-shadow 0.2s ease, border 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border 0.2s ease;
 }
 
 .vue-flow__handle-input {

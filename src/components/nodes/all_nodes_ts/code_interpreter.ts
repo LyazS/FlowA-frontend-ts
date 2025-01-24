@@ -7,8 +7,9 @@ import {
   VFNodeAttachingPos,
   VFNodeAttachingType,
 } from '@/components/nodes/VFNodeInterface'
-
 import VFNode from '@/components/nodes/VFNodeClass'
+import NodeVue from '@/components/nodes/all_nodes_vue/basenode.vue'
+export { NodeVue }
 export function createNode(): VFNode {
   const node = new VFNode('code_interpreter', 'basenode', '代码解释器')
   node.setNodeFlag(VFNodeFlag.isTask)

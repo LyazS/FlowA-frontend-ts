@@ -33,14 +33,14 @@ class VFNode implements VFNodeData {
   label: string
   placeholderlabel: string
   size: VFNodeSize
-  min_size?: VFNodeSize | undefined
-  attaching?: VFNodeAttaching | undefined
-  nesting?: VFNodeNesting | undefined
-  connections?: VFNodeConnections | undefined
-  payloads?: VFNodeContents | undefined
-  results?: VFNodeContents | undefined
-  state?: VFNodeState | undefined
-  config?: VFNodeConfig | undefined
+  min_size?: VFNodeSize
+  attaching?: VFNodeAttaching
+  nesting?: VFNodeNesting
+  connections?: VFNodeConnections
+  payloads?: VFNodeContents
+  results?: VFNodeContents
+  state?: VFNodeState
+  config?: VFNodeConfig
   constructor(ntype: string, vtype: string, label: string) {
     this.ntype = ntype
     this.vtype = vtype
@@ -53,12 +53,13 @@ class VFNode implements VFNodeData {
     this.placeholderlabel = label
   }
 
-  initNestedAttribute(): void {
+  initNestedAttribute(tag: string): void {
     this.min_size = {
       width: 200,
       height: 200,
     }
     this.nesting = {
+      tag: tag,
       pad: {
         top: 60,
         bottom: 40,
@@ -148,7 +149,7 @@ class VFNode implements VFNodeData {
 
   setAttaching(
     type: VFNodeAttachingType,
-    pos: [VFNodeAttachingPos, VFNodeAttachingPos],
+    pos: [VFNodeAttachingPos, number, VFNodeAttachingPos, number],
     label: string,
   ): void {
     if (!this.attaching) {
