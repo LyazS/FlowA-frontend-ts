@@ -25,7 +25,7 @@ export const useVFlowInitial = (): VFlowInitInstance => {
   }
 
   const importAllNodes = async () => {
-    const modules = import.meta.glob('../components/nodes/all_node_js/**.ts') as Record<
+    const modules = import.meta.glob('../components/nodes/all_nodes_ts/**.ts') as Record<
       string,
       () => Promise<NodeModule>
     >
@@ -41,6 +41,7 @@ export const useVFlowInitial = (): VFlowInitInstance => {
     })
 
     await Promise.all(promises)
+    console.debug('All nodes imported')
   }
 
   const createVFNode = (ntype: string) => {

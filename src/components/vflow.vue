@@ -39,7 +39,7 @@
       />
     </template>
   </VueFlow>
-  <!-- <ContextMenu v-model:show="showMenu" :options="menuOptions" /> -->
+  <ContextMenu v-model:show="showMenu" :options="menuOptions" />
 </template>
 
 <style scoped>
@@ -71,10 +71,18 @@ import connecting_edge from '@/components/edges/connecting_edge.vue'
 // import miniMapCtrl from '@/components/panelctrls/miniMapCtrl.vue'
 // import nuipanel from '@/components/panelctrls/nuipanel.vue'
 
-
 import { useVFlowInitial } from '@/hooks/useVFlowInitial'
+import { useVFlowManager } from '@/hooks/useVFlowManager'
+import { useContextMenu } from '@/hooks/useContextMenu'
+import { useVFlowEvents } from '@/hooks/useVFlowEvent'
 const { AllVFNodeTypes, importAllNodes } = useVFlowInitial()
+const { initNodeManagement, AllNodeCounters } = useVFlowManager()
+const { initContextMenu, menuOptions, showMenu } = useContextMenu()
+const {} = useVFlowEvents()
+
 onBeforeMount(async () => {
   await importAllNodes()
+  initNodeManagement()
+  initContextMenu()
 })
 </script>

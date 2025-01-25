@@ -12,10 +12,8 @@ import NodeVue from '@/components/nodes/all_nodes_vue/basenode.vue'
 export { NodeVue }
 export function createNode(): VFNode {
   const node = new VFNode('code_interpreter', 'basenode', '代码解释器')
-  node.setNodeFlag(VFNodeFlag.isTask)
-  node.setSize(80, 80)
+  node.setNodeFlag(VFNodeFlag.isTask).setSize(80, 80)
 
-  node.initConnectionsAttribute()
   node.addHandle(VFNodeConnectionType.inputs, 'input')
   node.addHandle(VFNodeConnectionType.outputs, 'output')
   node.addHandle(VFNodeConnectionType.callbackUsers, 'callbackUser')
@@ -25,8 +23,6 @@ export function createNode(): VFNode {
     inputKey: 'input',
   })
 
-  node.initPayloads()
-  node.initResults()
   node.addPayload(
     {
       label: '输入变量',
@@ -52,11 +48,15 @@ export function createNode(): VFNode {
     'D_CODE',
   )
 
-  node.addResultWConnect({ label: 'output1', type: 'String', key: 'output1', data: null }, 'output')
-  node.addResultWConnect({ label: 'output2', type: 'String', key: 'output2', data: null }, 'output')
+  node.addResultWithConnection(
+    { label: 'output1', type: 'String', key: 'output1', data: null },
+    'output',
+  )
+  node.addResultWithConnection(
+    { label: 'output2', type: 'String', key: 'output2', data: null },
+    'output',
+  )
 
-  node.initState()
-  node.initConfig()
   node.setOutputsUIType('codeoutputs')
   return node
 }

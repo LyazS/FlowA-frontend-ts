@@ -11,22 +11,20 @@ import VFNode from '@/components/nodes/VFNodeClass'
 import NodeVue from '@/components/nodes/all_nodes_vue/basenode.vue'
 export { NodeVue }
 export function createNode(): VFNode {
-  const node = new VFNode('iter_run', 'basenode', '迭代运行')
-  node.setNodeFlag(VFNodeFlag.isPassive)
-  node.setSize(200, 200)
+  const node = new VFNode('iter_run', 'basenode', '迭代运行').initAsNestedNode('ITER')
+  node.setNodeFlag(VFNodeFlag.isTask | VFNodeFlag.isNested).setSize(200, 200)
 
-  node.initNestedAttribute("ITER")
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_input)
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_callbackUser)
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_output)
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_next)
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_callbackFunc)
 
-  node.initConnectionsAttribute()
   node.addHandle(VFNodeConnectionType.inputs, 'input')
   node.addHandle(VFNodeConnectionType.outputs, 'output')
   node.addHandle(VFNodeConnectionType.callbackUsers, 'callbackUser')
   node.addHandle(VFNodeConnectionType.callbackFuncs, 'callbackFunc')
+  node.addHandle(VFNodeConnectionType.self, 'attach_output')
   node.addHandleData(VFNodeConnectionType.self, 'self', {
     type: VFNodeConnectionDataType.FromOuter,
     inputKey: 'input',
@@ -40,7 +38,6 @@ export function createNode(): VFNode {
     atype: VFNodeConnectionDataAttachedType.attached_node_next,
   })
 
-  node.initPayloads()
   node.addPayload(
     { label: '迭代数组', type: 'List', key: 'iter_list', data: '', uitype: 'iter_input' },
     'D_ITERLIST',
@@ -72,9 +69,7 @@ export function createNode(): VFNode {
     type: VFNodeConnectionDataType.FromOuter,
     inputKey: 'input',
   })
-  node.initResults()
-  node.initState()
-  node.initConfig()
+
   node.setOutputsUIType('packoutputs')
   return node
 }

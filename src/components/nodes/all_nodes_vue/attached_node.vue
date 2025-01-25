@@ -11,14 +11,14 @@
 import { computed, onMounted } from 'vue'
 import { Position, Handle, useVueFlow, type Node, type HandleType } from '@vue-flow/core'
 import {
-  type VFNodeData,
+  type AttachedVFNodeData,
   VFNodeAttachingPos,
   VFNodeAttachingType,
 } from '@/components/nodes/VFNodeInterface'
 
 interface Props {
   id: string
-  data: VFNodeData
+  data: AttachedVFNodeData
 }
 
 const props = defineProps<Props>()
@@ -26,11 +26,11 @@ const { findNode } = useVueFlow()
 const thisnode = findNode(props.id) as Node
 
 // 解构获取位置信息
-const [yPart, yPos, xPart, xPos] = props.data.attaching!.pos
+const [yPart, yPos, xPart, xPos] = props.data.attaching.pos
 
 // 计算属性
 const posLR = computed(() => (xPart === VFNodeAttachingPos.left ? Position.Right : Position.Left))
-const node_text = computed(() => props.data.attaching!.label)
+const node_text = computed(() => props.data.attaching.label)
 const handle_style = computed(() =>
   xPart === VFNodeAttachingPos.left ? { right: '2px' } : { left: '2px' },
 )
@@ -40,7 +40,7 @@ const justCont = computed(() => (xPart === VFNodeAttachingPos.left ? 'flex-start
 type HandleId = 'input' | 'output' | 'callbackUser' | 'callbackFunc'
 
 const handle_type = computed<HandleType>(() => {
-  switch (props.data.attaching!.type) {
+  switch (props.data.attaching.type) {
     case VFNodeAttachingType.output:
       return 'target'
     case VFNodeAttachingType.input:
@@ -55,7 +55,7 @@ const handle_type = computed<HandleType>(() => {
 })
 
 const handle_id = computed<HandleId>(() => {
-  switch (props.data.attaching!.type) {
+  switch (props.data.attaching.type) {
     case VFNodeAttachingType.output:
       return 'input'
     case VFNodeAttachingType.input:

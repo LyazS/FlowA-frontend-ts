@@ -19,7 +19,7 @@ import {
   dateZhCN,
   zhCN,
 } from 'naive-ui'
-import vflow from '@/components/vflow.vue'
+import vflow from './components/vflow.vue'
 import hljs from 'highlight.js/lib/core'
 import python_hljs from 'highlight.js/lib/languages/python'
 import json_hljs from 'highlight.js/lib/languages/json'

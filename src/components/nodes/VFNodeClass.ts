@@ -11,6 +11,9 @@ import type {
   VFNodeNesting,
   VFNodeState,
   VFNodeConfig,
+  BaseVFNodeData,
+  AttachedVFNodeData,
+  NestedVFNodeData,
   VFNodeData,
 } from '@/components/nodes/VFNodeInterface'
 
@@ -23,272 +26,217 @@ import {
   VFNodeAttachingType,
 } from '@/components/nodes/VFNodeInterface'
 
-import { cloneDeep } from 'lodash'
 import { getUuid } from '@/utils/tools'
 
-class VFNode implements VFNodeData {
+class VFNode implements BaseVFNodeData {
+  // 基础必选属性
   ntype: string
   vtype: string
   flag: number
   label: string
   placeholderlabel: string
   size: VFNodeSize
+  connections: VFNodeConnections
+  payloads: VFNodeContents
+  results: VFNodeContents
+  state: VFNodeState
+  config: VFNodeConfig
+
+  // 可选特性
   min_size?: VFNodeSize
   attaching?: VFNodeAttaching
   nesting?: VFNodeNesting
-  connections?: VFNodeConnections
-  payloads?: VFNodeContents
-  results?: VFNodeContents
-  state?: VFNodeState
-  config?: VFNodeConfig
+
   constructor(ntype: string, vtype: string, label: string) {
     this.ntype = ntype
     this.vtype = vtype
-    this.size = {
-      width: -1,
-      height: -1,
-    }
-    this.flag = 0
     this.label = label
     this.placeholderlabel = label
+    this.flag = 0
+    this.size = { width: -1, height: -1 }
+
+    // 初始化所有必选属性
+    this.connections = this.createDefaultConnections()
+    this.payloads = this.createDefaultContents()
+    this.results = this.createDefaultContents()
+    this.state = this.createDefaultState()
+    this.config = this.createDefaultConfig()
   }
 
-  initNestedAttribute(tag: string): void {
-    this.min_size = {
-      width: 200,
-      height: 200,
-    }
-    this.nesting = {
-      tag: tag,
-      pad: {
-        top: 60,
-        bottom: 40,
-        left: 60,
-        right: 60,
-      },
-      attached_pad: {
-        top: 30,
-        bottom: 25,
-        left: 17,
-        right: 17,
-        gap: 20,
-      },
-      attached_nodes: {},
-    }
-  }
-
-  initConnectionsAttribute(): void {
-    this.connections = {
-      // 自身可用变量，默认存在
-      self: {
-        self: { label: 'self', data: {} },
-      },
-      // 附属节点可用变量，默认存在
-      attach: {
-        attach: { label: 'attach', data: {} },
-      },
-      // 用于嵌套节点的下一次迭代的连接
-      next: {
-        next: { label: 'next', data: {} },
-      },
+  // 初始化方法 ====================================================
+  private createDefaultConnections(): VFNodeConnections {
+    return {
+      self: { self: { label: 'self', data: {} } },
+      attach: { attach: { label: 'attach', data: {} } },
+      next: { next: { label: 'next', data: {} } },
       inputs: {},
+      outputs: {},
       callbackUsers: {},
       callbackFuncs: {},
-      outputs: {},
     }
   }
-  initPayloads(): void {
-    this.payloads = { byId: {}, order: [] }
+
+  private createDefaultContents(): VFNodeContents {
+    return { byId: {}, order: [] }
   }
-  initResults(): void {
-    this.results = { byId: {}, order: [] }
-  }
-  initState(): void {
-    this.state = {
+
+  private createDefaultState(): VFNodeState {
+    return {
       status: 'Default',
       copy: {},
-      copyCount: {
-        Running: 0,
-        Success: 0,
-        Error: 0,
-      },
+      copyCount: { Running: 0, Success: 0, Error: 0 },
     }
   }
-  initConfig(): void {
-    this.config = {
-      outputsUIType: '',
+
+  private createDefaultConfig(): VFNodeConfig {
+    return { outputsUIType: '' }
+  }
+
+  // 类型初始化方法 ================================================
+  initAsNestedNode(tag: string): this & NestedVFNodeData {
+    this.flag |= VFNodeFlag.isNested
+    this.min_size = { width: 200, height: 200 }
+    this.nesting = {
+      tag,
+      pad: { top: 60, bottom: 40, left: 60, right: 60, gap: 0 },
+      attached_pad: { top: 30, bottom: 25, left: 17, right: 17, gap: 20 },
+      attached_nodes: {},
     }
-  }
-  // =========================================================
-  setLabel(label: string): void {
-    this.label = label
+    return this as this & NestedVFNodeData
   }
 
-  setMinSize(width: number, height: number): void {
-    this.min_size = { width, height }
-  }
-
-  setSize(width: number, height: number): void {
-    this.size = { width, height }
-  }
-
-  setNodeFlag(flag: number): void {
-    this.flag = flag
-  }
-
-  setAttachedAttribute(attribute: VFNodeAttaching): void {
-    this.attaching = attribute
-  }
-  addAttachedNode(ntype: VFNodeConnectionDataAttachedType): void {
-    if (!this.nesting) {
-      console.error('Node is not a nested node')
-      return
-    }
-    this.nesting.attached_nodes[ntype] = { nid: null }
-  }
-
-  setAttaching(
+  initAsAttachedNode(
     type: VFNodeAttachingType,
     pos: [VFNodeAttachingPos, number, VFNodeAttachingPos, number],
     label: string,
-  ): void {
-    if (!this.attaching) {
-      console.error('Node is not a attaching node')
-      return
-    }
-    this.attaching.type = type
-    this.attaching.pos = pos
-    this.attaching.label = label
+  ): this & AttachedVFNodeData {
+    this.flag |= VFNodeFlag.isAttached
+    this.attaching = { type, pos, label }
+    return this as this & AttachedVFNodeData
   }
 
-  // Node data operations =======================================
-  setOutputsUIType(uitype: string): void {
-    if (!this.config) {
-      console.error('Node has no config attribute')
-      return
-    }
-    this.config.outputsUIType = uitype
+  // 类型守卫 ======================================================
+  isAttachedNode(): this is AttachedVFNodeData {
+    return (this.flag & VFNodeFlag.isAttached) !== 0
   }
 
-  addHandle(
-    connecttype: VFNodeConnectionType,
-    handleId: string,
-    label: string | null = null,
-  ): void {
-    if (!this.connections) {
-      console.error('Node has no connections attribute')
-      return
-    }
-    this.connections[connecttype][handleId] = { label: label || handleId, data: {} }
+  isNestedNode(): this is NestedVFNodeData {
+    return (this.flag & VFNodeFlag.isNested) !== 0
   }
 
-  rmHandle(connecttype: VFNodeConnectionType, handleId: string): void {
-    if (this.connections && this.connections[connecttype].hasOwnProperty(handleId)) {
-      delete this.connections[connecttype][handleId]
+  // 属性操作方法 ==================================================
+  setLabel(label: string): this {
+    this.label = label
+    return this
+  }
+
+  setSize(width: number, height: number): this {
+    const minWidth = this.isNestedNode() ? (this.min_size?.width ?? 0) : 0
+    const minHeight = this.isNestedNode() ? (this.min_size?.height ?? 0) : 0
+    this.size = {
+      width: Math.max(width, minWidth),
+      height: Math.max(height, minHeight),
     }
+    return this
+  }
+
+  setNodeFlag(flag: VFNodeFlag): this {
+    this.flag = flag
+    return this
+  }
+
+  // 连接点操作 ====================================================
+  addHandle(connectType: VFNodeConnectionType, handleId: string, label?: string): this {
+    this.connections[connectType][handleId] = {
+      label: label || handleId,
+      data: {},
+    }
+    return this
+  }
+
+  removeHandle(connectType: VFNodeConnectionType, handleId: string): this {
+    if (this.connections[connectType][handleId]) {
+      delete this.connections[connectType][handleId]
+    }
+    return this
   }
 
   addHandleData(
-    connecttype: VFNodeConnectionType,
+    connectType: VFNodeConnectionType,
     handleId: string,
-    handleData: VFNodeHandleData,
-    did: string | null = null,
+    data: VFNodeHandleData,
+    did?: string,
   ): string {
-    const _did = did || getUuid()
-    if (!this.connections || !this.connections[connecttype].hasOwnProperty(handleId)) {
-      this.addHandle(connecttype, handleId)
-    }
-    this.connections![connecttype][handleId].data[_did] = handleData
-    return _did
+    const handle = this.connections[connectType][handleId]
+    if (!handle) throw new Error(`Handle ${handleId} not found in ${connectType}`)
+
+    const dataId = did || getUuid()
+    handle.data[dataId] = data
+    return dataId
   }
 
-  rmHandleData(connecttype: VFNodeConnectionType, handleId: string, did: string): void {
-    if (
-      this.connections &&
-      this.connections[connecttype].hasOwnProperty(handleId) &&
-      this.connections[connecttype][handleId].data.hasOwnProperty(did)
-    ) {
-      delete this.connections![connecttype][handleId]!.data[did]
+  removeHandleData(connectType: VFNodeConnectionType, handleId: string, did: string): this {
+    const handle = this.connections[connectType][handleId]
+    if (handle?.data[did]) {
+      delete handle.data[did]
     }
+    return this
   }
 
-  addPayload(payload: VFNodeContentData, pid: string | null = null): string {
-    const _pid = pid || getUuid()
-    if (!this.payloads) {
-      console.error('Node has no payloads attribute')
-      return ''
-    }
-    this.payloads.byId[_pid] = payload
-    this.payloads.order.push(_pid)
-    return _pid
+  // 数据内容操作 ==================================================
+  addPayload(content: Omit<VFNodeContentData, 'hid' | 'did'>, pid?: string): string {
+    const id = pid || getUuid()
+    this.payloads.byId[id] = { ...content, hid: '', did: '' }
+    this.payloads.order.push(id)
+    return id
   }
 
-  rmPayload(pid: string): void {
-    if (this.payloads && this.payloads.byId.hasOwnProperty(pid)) {
-      delete this.payloads.byId[pid]
-      this.payloads.order.splice(this.payloads.order.indexOf(pid), 1)
-    }
-  }
-
-  addResult(result: VFNodeContentData, rid: string | null = null): string {
-    const _rid = rid || getUuid()
-    if (!this.results) {
-      console.error('Node has no results attribute')
-      return ''
-    }
-    this.results.byId[_rid] = result
-    this.results.order.push(_rid)
-    return _rid
-  }
-
-  rmResult(rid: string): void {
-    if (this.results && this.results.byId.hasOwnProperty(rid)) {
-      delete this.results.byId[rid]
-      this.results.order.splice(this.results.order.indexOf(rid), 1)
-    }
-  }
-
-  addResultWConnect(
-    result: VFNodeContentData,
-    hid: string,
-    rid: string | null = null,
-    did: string | null = null,
+  addResultWithConnection(
+    content: Omit<VFNodeContentData, 'hid' | 'did'>,
+    handleId: string,
   ): string {
-    const _rid = rid || getUuid()
-    const _did = this.addHandleData(
-      VFNodeConnectionType.outputs,
-      hid,
-      { type: VFNodeConnectionDataType.FromInner, path: ['results', _rid], useid: [] },
-      did,
-    )
-    this.addResult({ ...result, hid, did: _did }, _rid)
-    return _rid
+    if (!this.connections.outputs[handleId]) {
+      this.addHandle(VFNodeConnectionType.outputs, handleId)
+    }
+
+    const rid = getUuid()
+    const did = this.addHandleData(VFNodeConnectionType.outputs, handleId, {
+      type: VFNodeConnectionDataType.FromInner,
+      path: ['results', rid],
+      useid: [],
+    })
+
+    this.results.byId[rid] = { ...content, hid: handleId, did }
+    this.results.order.push(rid)
+    return rid
   }
 
-  rmResultWConnect(rid: string): void {
-    if (this.results && this.results.byId.hasOwnProperty(rid)) {
-      const hid = this.results.byId[rid].hid
-      const did = this.results.byId[rid].did
-      if (!hid || !did) {
-        console.error('Result has no hid or did')
-        return
-      }
-      this.rmHandleData(VFNodeConnectionType.outputs, hid, did)
-      delete this.results.byId[rid]
-      this.results.order.splice(this.results.order.indexOf(rid), 1)
+  // 嵌套节点操作 ==================================================
+  addAttachedNode(type: VFNodeConnectionDataAttachedType): this {
+    if (!this.isNestedNode()) {
+      throw new Error('Cannot add attached node to non-nested node')
     }
+
+    this.nesting!.attached_nodes[type] = { nid: null }
+    return this
   }
 
-  resetState(): void {
-    this.state = {
-      status: 'Default',
-      copy: {},
-      copyCount: {
-        Running: 0,
-        Success: 0,
-        Error: 0,
-      },
-    }
+  // 状态管理 ======================================================
+  updateStatus(status: 'Running' | 'Success' | 'Error'): this {
+    this.state.status = status
+    this.state.copyCount[status] += 1
+    return this
+  }
+
+  resetState(): this {
+    this.state = this.createDefaultState()
+    return this
+  }
+
+  // 配置操作 ======================================================
+  setOutputsUIType(uitype: string): this {
+    this.config.outputsUIType = uitype
+    return this
   }
 }
 

@@ -32,6 +32,7 @@ enum VFNodeAttachingType {
   output = 'output',
   callbackFunc = 'callbackFunc',
   callbackUser = 'callbackUser',
+  next = 'next',
 }
 enum VFNodeAttachingPos {
   top = 'top',
@@ -90,7 +91,7 @@ interface VFNodePadding {
   bottom: number
   left: number
   right: number
-  gap?: number
+  gap: number
 }
 
 interface VFNodeSize {
@@ -118,22 +119,42 @@ interface VFNodeState {
 interface VFNodeConfig {
   outputsUIType: string
 }
-
-interface VFNodeData {
+// 基础节点接口（所有节点的共有属性）
+interface BaseVFNodeData {
   ntype: string
   vtype: string
   flag: number
   label: string
   placeholderlabel: string
   size: VFNodeSize
-  min_size?: VFNodeSize
-  attaching?: VFNodeAttaching
-  nesting?: VFNodeNesting
-  connections?: VFNodeConnections
-  payloads?: VFNodeContents
-  results?: VFNodeContents
-  state?: VFNodeState
-  config?: VFNodeConfig
+  connections: VFNodeConnections
+  payloads: VFNodeContents
+  results: VFNodeContents
+  state: VFNodeState
+  config: VFNodeConfig
+}
+
+// 附属节点接口
+interface AttachedVFNodeData extends BaseVFNodeData {
+  attaching: VFNodeAttaching
+}
+
+// 嵌套节点接口
+interface NestedVFNodeData extends BaseVFNodeData {
+  min_size: VFNodeSize
+  nesting: VFNodeNesting
+}
+
+// 组合成联合类型
+type VFNodeData = BaseVFNodeData | AttachedVFNodeData | NestedVFNodeData
+
+// 类型守卫
+function isAttachedNode(node: VFNodeData): node is AttachedVFNodeData {
+  return (node.flag & VFNodeFlag.isAttached) !== 0
+}
+
+function isNestedNode(node: VFNodeData): node is NestedVFNodeData {
+  return (node.flag & VFNodeFlag.isNested) !== 0
 }
 
 export type {
@@ -149,6 +170,9 @@ export type {
   VFNodeNesting,
   VFNodeState,
   VFNodeConfig,
+  BaseVFNodeData,
+  AttachedVFNodeData,
+  NestedVFNodeData,
   VFNodeData,
 }
 export {
@@ -158,4 +182,6 @@ export {
   VFNodeFlag,
   VFNodeAttachingPos,
   VFNodeAttachingType,
+  isAttachedNode,
+  isNestedNode,
 }
