@@ -14,8 +14,8 @@
     delete-key-code="Delete"
   >
     <Background />
-    <!-- <miniMapCtrl />
-        <nuipanel /> -->
+    <!-- <miniMapCtrl /> -->
+    <nuipanel />
 
     <template #edge-normal="customEdgeProps">
       <connected_edge
@@ -69,20 +69,21 @@ import { ContextMenu } from '@imengyu/vue3-context-menu'
 import connected_edge from '@/components/edges/connected_edge.vue'
 import connecting_edge from '@/components/edges/connecting_edge.vue'
 // import miniMapCtrl from '@/components/panelctrls/miniMapCtrl.vue'
-// import nuipanel from '@/components/panelctrls/nuipanel.vue'
+import nuipanel from '@/components/panelctrls/nuipanel.vue'
 
 import { useVFlowInitial } from '@/hooks/useVFlowInitial'
 import { useVFlowManager } from '@/hooks/useVFlowManager'
 import { useContextMenu } from '@/hooks/useContextMenu'
 import { useVFlowEvents } from '@/hooks/useVFlowEvent'
+import { useKeyboardControls } from '@/hooks/useKeyboardControls'
+
 const { AllVFNodeTypes, importAllNodes } = useVFlowInitial()
 const { initNodeManagement, AllNodeCounters } = useVFlowManager()
 const { initContextMenu, menuOptions, showMenu } = useContextMenu()
 const {} = useVFlowEvents()
+const {} = useKeyboardControls()
 
-onBeforeMount(async () => {
-  await importAllNodes()
-  initNodeManagement()
-  initContextMenu()
-})
+await importAllNodes()
+initNodeManagement()
+initContextMenu()
 </script>

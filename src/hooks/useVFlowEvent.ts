@@ -19,7 +19,7 @@ import {
 } from '@/hooks/useContextMenu'
 // import { useFlowAOperation } from '@/services/useFlowAOperation';
 
-import { selectedNodeId } from '@/hooks/useVFlowNodeAttribute'
+import { selectedNodeId } from '@/hooks/useVFlowAttribute'
 import type VFNode from '@/components/nodes/VFNodeClass'
 
 // 单例模式类型
@@ -72,6 +72,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
 
   // vueflow事件监听
   onPaneClick((event: MouseEvent) => {
+    console.log(`Node ${selectedNodeId.value} deselected`)
     selectedNodeId.value = null
   })
 

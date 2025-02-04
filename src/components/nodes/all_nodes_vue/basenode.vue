@@ -110,7 +110,7 @@
         transform: `translate(-50%, ${center_text_pos.trfY}%)`,
       }"
     >
-      {{ props.data.label }}
+      {{ thisnode.data.label }}
     </div>
     <n-flex
       v-if="isShowCopyCount"
@@ -123,11 +123,15 @@
         transform: `translate(-50%,  ${center_text_pos.copCountY}%) translate(0,  10px)`,
       }"
     >
-      <div class="state-text" style="color: #70c0e8">{{ data.state!.copyCount.Running }}</div>
+      <div class="state-text" style="color: #70c0e8">
+        {{ thisnodedata.state!.copyCount.Running }}
+      </div>
       <div class="state-text" style="color: white">/</div>
-      <div class="state-text" style="color: #63e2b7">{{ data.state!.copyCount.Success }}</div>
+      <div class="state-text" style="color: #63e2b7">
+        {{ thisnodedata.state!.copyCount.Success }}
+      </div>
       <div class="state-text" style="color: white">/</div>
-      <div class="state-text" style="color: #e88080">{{ data.state!.copyCount.Error }}</div>
+      <div class="state-text" style="color: #e88080">{{ thisnodedata.state!.copyCount.Error }}</div>
     </n-flex>
   </div>
 </template>
@@ -143,6 +147,7 @@ import {
   VFNodeAttachingPos,
   VFNodeAttachingType,
 } from '@/components/nodes/VFNodeInterface'
+import type VFNode from '../VFNodeClass'
 
 interface HandleData {
   key: string
@@ -151,11 +156,11 @@ interface HandleData {
 
 const props = defineProps<{
   id: string
-  data: VFNodeData
 }>()
 
 const { findNode } = useVueFlow()
 const thisnode = findNode(props.id) as Node
+const thisnodedata = thisnode.data as VFNodeData
 
 const handle_h_pad = 1
 const handle_h_gap = 8
@@ -163,14 +168,14 @@ const handle_text_edge_pad = 6
 const label_gap = 15
 
 const inputHandles = computed<HandleData[]>(() => {
-  return Object.entries(props.data.connections!.inputs)
+  return Object.entries(thisnodedata.connections.inputs)
     .map(([key, value]) => ({ key, label: value.label }))
     .sort((a, b) => a.key.localeCompare(b.key))
 })
 
 const outputHandles = computed<HandleData[]>(() => {
   const pattern = /^\d+\/[^/]*$/
-  const sortedEntries = Object.entries(props.data.connections!.outputs).sort(
+  const sortedEntries = Object.entries(thisnodedata.connections!.outputs).sort(
     ([aKey, aValue], [bKey, bValue]) => {
       if (pattern.test(aValue.label) && pattern.test(bValue.label)) {
         const a_num = parseInt(aValue.label.split('/')[0])
@@ -187,15 +192,16 @@ const outputHandles = computed<HandleData[]>(() => {
     label: pattern.test(value.label) ? value.label.split('/')[1] : value.label,
   }))
 })
-
+console.debug('inputHandles', inputHandles.value)
+console.debug('outputHandles', outputHandles.value)
 const cbfuncHandles = computed<HandleData[]>(() => {
-  return Object.entries(props.data.connections!.callbackFuncs)
+  return Object.entries(thisnodedata.connections!.callbackFuncs)
     .map(([key, value]) => ({ key, label: value.label }))
     .sort((a, b) => a.key.localeCompare(b.key))
 })
 
 const cbuserHandles = computed<HandleData[]>(() => {
-  return Object.entries(props.data.connections!.callbackUsers)
+  return Object.entries(thisnodedata.connections!.callbackUsers)
     .map(([key, value]) => ({ key, label: value.label }))
     .sort((a, b) => a.key.localeCompare(b.key))
 })
@@ -209,7 +215,7 @@ const max_handles_bottom = computed(() =>
 )
 
 const center_text_pos = computed(() => {
-  return VFNodeFlag.isNested & props.data.flag
+  return VFNodeFlag.isNested & thisnodedata.flag
     ? { top: 0, trfY: 0, copCountY: 50 }
     : {
         top: handle_h_pad + max_handles_top.value * handle_h_gap + 10,
@@ -220,7 +226,7 @@ const center_text_pos = computed(() => {
 
 const hiddenText: Ref<HTMLDivElement | null> = ref(null)
 
-const isShowCopyCount = computed(() => Object.keys(props.data.state!.copy).length > 0)
+const isShowCopyCount = computed(() => Object.keys(thisnodedata.state.copy).length > 0)
 
 const countCopy = (statecopy: Record<string, { status: string }>) => {
   let copyRunning = 0
@@ -237,53 +243,61 @@ const countCopy = (statecopy: Record<string, { status: string }>) => {
     }
   })
 
-  props.data.state!.copyCount = {
+  thisnode.data.state.copyCount = {
     Running: copyRunning,
     Success: copySuccess,
     Error: copyError,
   }
 
   if (copyRunning > 0) {
-    props.data.state!.status = 'Running'
+    thisnode.data.state!.status = 'Running'
   } else if (copyError > 0) {
-    props.data.state!.status = 'Error'
+    thisnode.data.state!.status = 'Error'
   } else if (copySuccess > 0) {
-    props.data.state!.status = 'Success'
+    thisnode.data.state!.status = 'Success'
   } else {
-    props.data.state!.status = 'Default'
+    thisnode.data.state!.status = 'Default'
   }
 }
 
 const debouncedCountCopy = debounce(countCopy, 500)
 
 onMounted(() => {
+  console.debug('onMounted node')
   watch(
-    () => props.data.state!.copy,
+    () => thisnode.data.state.copy,
     (newValue) => {
       debouncedCountCopy(newValue)
     },
     { deep: true },
   )
 
-  if (!(VFNodeFlag.isNested & props.data.flag)) {
+  if (!(thisnode.data as VFNode).isNestedNode()) {
+    console.debug("add node's size watcher")
     watch(
       [max_handles_top, max_handles_bottom],
       ([newtop, newbottom]) => {
         const node_ht = 30 + (newtop + newbottom) * handle_h_gap
-        thisnode.height = `${node_ht}px`
-        props.data.size.height = node_ht
+        thisnode.style = {
+          ...thisnode.style,
+          height: `${node_ht}px`,
+        }
+        thisnode.data.size.height = node_ht
       },
       { immediate: true },
     )
 
     watch(
-      () => props.data.label,
+      () => thisnode.data.label,
       async (newLabel) => {
         await nextTick(() => {
           if (hiddenText.value && newLabel !== '') {
             const node_wd = hiddenText.value.offsetWidth + label_gap * 2
-            thisnode.width = `${node_wd}px`
-            props.data.size.width = node_wd
+            thisnode.style = {
+             ...thisnode.style,
+              width: `${node_wd}px`,
+            }
+            thisnode.data.size.width = node_wd
           }
         })
       },
@@ -291,7 +305,7 @@ onMounted(() => {
     )
 
     watch(
-      () => props.data.state!.status,
+      () => thisnode.data.state.status,
       (newStatus) => {
         const statusClasses = {
           Default: 'node-status-default',

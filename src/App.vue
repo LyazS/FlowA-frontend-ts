@@ -3,7 +3,24 @@
     <n-dialog-provider>
       <n-message-provider>
         <div :style="{ height: '100vh', width: '100vw' }">
-          <vflow />
+          <Suspense>
+            <vflow />
+            <template #fallback>
+              <n-flex
+                justify="center"
+                align="center"
+                :style="{
+                  height: '100vh',
+                  width: '100vw',
+                  backgroundColor: '#000000',
+                }"
+              >
+                <n-spin :size="50">
+                  <template #description><n-text> 正在加载... </n-text> </template>
+                </n-spin>
+              </n-flex>
+            </template>
+          </Suspense>
         </div>
       </n-message-provider>
     </n-dialog-provider>
@@ -18,6 +35,9 @@ import {
   NDialogProvider,
   dateZhCN,
   zhCN,
+  NSpin,
+  NFlex,
+  NText,
 } from 'naive-ui'
 import vflow from './components/vflow.vue'
 import hljs from 'highlight.js/lib/core'

@@ -165,7 +165,7 @@ class VFNode implements BaseVFNodeData {
     connectType: VFNodeConnectionType,
     handleId: string,
     data: VFNodeHandleData,
-    did?: string,
+    did?: string | null,
   ): string {
     const handle = this.connections[connectType][handleId]
     if (!handle) throw new Error(`Handle ${handleId} not found in ${connectType}`)
@@ -191,24 +191,38 @@ class VFNode implements BaseVFNodeData {
     return id
   }
 
+  addResult(content: Omit<VFNodeContentData, 'hid' | 'did'>, rid?: string): string {
+    const id = rid || getUuid()
+    this.results.byId[id] = { ...content, hid: '', did: '' }
+    this.results.order.push(id)
+    return id
+  }
+
   addResultWithConnection(
     content: Omit<VFNodeContentData, 'hid' | 'did'>,
     handleId: string,
+    rid: string | null = null,
+    did: string | null = null,
   ): string {
     if (!this.connections.outputs[handleId]) {
       this.addHandle(VFNodeConnectionType.outputs, handleId)
     }
 
-    const rid = getUuid()
-    const did = this.addHandleData(VFNodeConnectionType.outputs, handleId, {
-      type: VFNodeConnectionDataType.FromInner,
-      path: ['results', rid],
-      useid: [],
-    })
+    const _rid = rid || getUuid()
+    const _did = this.addHandleData(
+      VFNodeConnectionType.outputs,
+      handleId,
+      {
+        type: VFNodeConnectionDataType.FromInner,
+        path: ['results', _rid],
+        useid: [],
+      },
+      did,
+    )
 
-    this.results.byId[rid] = { ...content, hid: handleId, did }
-    this.results.order.push(rid)
-    return rid
+    this.results.byId[_rid] = { ...content, hid: handleId, did: _did }
+    this.results.order.push(_rid)
+    return _rid
   }
 
   // 嵌套节点操作 ==================================================

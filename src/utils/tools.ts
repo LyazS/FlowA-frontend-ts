@@ -1,14 +1,6 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import type { EventSourceMessage } from '@microsoft/fetch-event-source'
-
-interface VarItem {
-  nlabel: string
-  dlabel: string
-  dkey: string
-  dtype: string
-  nodeId: string
-  dpath: [string, string]
-}
+import type { VarItem4Selections } from '@/utils/schemas'
 
 interface SSEConfig {
   method: string
@@ -156,7 +148,7 @@ export function SubscribeSSE(
   }
 }
 
-export const mapVarItemToSelect = (item: VarItem): { label: string; value: string } => {
+export const mapVarItemToSelect = (item: VarItem4Selections): { label: string; value: string } => {
   return {
     label: `${item.nlabel}/${item.dlabel}/${item.dkey}/${item.dtype}`,
     value: `${item.nodeId}/${item.dpath[0]}/${item.dpath[1]}`,
