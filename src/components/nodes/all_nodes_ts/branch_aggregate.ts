@@ -28,8 +28,8 @@ export function createNode(): VFNode {
       type: 'AggregateBranch',
       key: 'branches',
       data: [
-        // { node: "1/1", refdata: "" },
-        // { node: "2/2", refdata: "" },
+        // { node: "xxx/output", refdata: "" },
+        // { node: "nid/outputhid", refdata: "" },
       ],
       uitype: 'aggregatebranch',
     },

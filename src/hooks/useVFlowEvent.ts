@@ -23,9 +23,7 @@ import { selectedNodeId } from '@/hooks/useVFlowAttribute'
 import type VFNode from '@/components/nodes/VFNodeClass'
 
 // 单例模式类型
-type VFlowEventsInstance = {
-  selectedNodeId: Ref<string | null>
-}
+type VFlowEventsInstance = {}
 
 let instance: VFlowEventsInstance | null = null
 
@@ -43,6 +41,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
 
   const { showContextMenu } = useContextMenu()
   const {
+    findNode,
     onConnect,
     onNodeDrag,
     onNodeClick,
@@ -61,19 +60,27 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
     if (nodedata.isAttachedNode()) return
     if (selectedNodeId.value === node.id) return
 
+    // 选择新点
     if (selectedNodeId.value) {
       console.log(`Node ${selectedNodeId.value} deselected`)
-      selectedNodeId.value = null
     }
-
     console.log(`Node ${node.id} selected`)
-    selectedNodeId.value = node.id
+    const foundnode = findNode(node.id)
+    if (foundnode) {
+      selectedNodeId.value = node.id
+    } else {
+      selectedNodeId.value = null
+      console.debug('Node not found')
+    }
+  }
+  const deselcetNodeEvent = () => {
+    console.log(`Node ${selectedNodeId.value} deselected`)
+    selectedNodeId.value = null
   }
 
   // vueflow事件监听
   onPaneClick((event: MouseEvent) => {
-    console.log(`Node ${selectedNodeId.value} deselected`)
-    selectedNodeId.value = null
+    deselcetNodeEvent()
   })
 
   onNodeClick((event: NodeMouseEvent) => {
@@ -126,9 +133,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
     // autoSaveWorkflow()
   })
 
-  instance = {
-    selectedNodeId,
-  }
+  instance = {}
 
   return instance
 }

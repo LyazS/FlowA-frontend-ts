@@ -12,52 +12,54 @@ import {
   h,
   type VNode,
 } from 'vue'
-import { NFlex, NH2, NCard, NScrollbar, NInput, NIcon, NText, NDivider } from 'naive-ui'
-import { Panel, useVueFlow, type Node } from '@vue-flow/core'
+import {
+  NFlex,
+  NH2,
+  NCard,
+  NScrollbar,
+  NInput,
+  NIcon,
+  NText,
+  NDivider,
+  type SelectOption,
+} from 'naive-ui'
+import { Panel, useVueFlow } from '@vue-flow/core'
 import { CreateOutline } from '@vicons/ionicons5'
 import { useNodeUtils } from '@/hooks/useNodeUtils'
 import { mapVarItemToSelect } from '@/utils/tools'
 import { selectedNodeId, isEditorMode, isEditing } from '@/hooks/useVFlowAttribute'
-import {
-  type VFNodeData,
-  VFNodeFlag,
-  VFNodeAttachingPos,
-  VFNodeAttachingType,
-} from '@/components/nodes/VFNodeInterface'
-import type VFNode from '@/components/nodes/VFNodeClass'
+import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
+import { type InputNode } from '@/utils/schemas'
 
-const { findVarFromIO, recursiveFindVariables } = useNodeUtils()
+const { recursiveFindVariables } = useNodeUtils()
 
-// const editable_tagoutputs = defineAsyncComponent(() => import('./editables/tagoutputs.vue')) as EditableComponent;
-// const editable_packoutputs = defineAsyncComponent(() => import('./editables/packoutputs.vue')) as EditableComponent;
-// const editable_condoutputs = defineAsyncComponent(() => import('./editables/condoutputs.vue')) as EditableComponent;
-// const editable_codeoutputs = defineAsyncComponent(() => import('./editables/codeoutputs.vue')) as EditableComponent;
-// const editable_iter_input = defineAsyncComponent(() => import('./editables/iter_input.vue')) as EditableComponent;
-// const editable_textinput = defineAsyncComponent(() => import('./editables/textinput.vue')) as EditableComponent;
-// const editable_textprint = defineAsyncComponent(() => import('./editables/textprint.vue')) as EditableComponent;
-// const editable_texttag = defineAsyncComponent(() => import('./editables/texttag.vue')) as EditableComponent;
+const editable_tagoutputs = defineAsyncComponent(() => import('./editables/tagoutputs.vue'))
+// const editable_packoutputs = defineAsyncComponent(() => import('./editables/packoutputs.vue'));
+// const editable_condoutputs = defineAsyncComponent(() => import('./editables/condoutputs.vue'));
+// const editable_codeoutputs = defineAsyncComponent(() => import('./editables/codeoutputs.vue'));
+// const editable_iter_input = defineAsyncComponent(() => import('./editables/iter_input.vue'));
+// const editable_textinput = defineAsyncComponent(() => import('./editables/textinput.vue'));
+// const editable_textprint = defineAsyncComponent(() => import('./editables/textprint.vue'));
+// const editable_texttag = defineAsyncComponent(() => import('./editables/texttag.vue'));
 const editable_header = defineAsyncComponent(() => import('./editables/common/header.vue'))
-// const editable_codeeditor = defineAsyncComponent(() => import('./editables/codeeditor.vue')) as EditableComponent;
+// const editable_codeeditor = defineAsyncComponent(() => import('./editables/codeeditor.vue'));
 const editable_vars_input = defineAsyncComponent(() => import('./editables/vars_input.vue'))
-// const editable_llmprompts = defineAsyncComponent(() => import('./editables/llmprompts.vue')) as EditableComponent;
-// const editable_aggregatebranchs = defineAsyncComponent(() => import('./editables/aggregatebranchs.vue')) as EditableComponent;
-// const editable_llmmodel = defineAsyncComponent(() => import('./editables/llmmodel.vue')) as EditableComponent;
-// const editable_httprequests = defineAsyncComponent(() => import('./editables/httprequests.vue')) as EditableComponent;
-// const editable_httptimeout = defineAsyncComponent(() => import('./editables/httptimeout.vue')) as EditableComponent;
+// const editable_llmprompts = defineAsyncComponent(() => import('./editables/llmprompts.vue'));
+const editable_aggregatebranchs = defineAsyncComponent(
+  () => import('./editables/aggregatebranchs.vue'),
+)
+// const editable_llmmodel = defineAsyncComponent(() => import('./editables/llmmodel.vue'));
+// const editable_httprequests = defineAsyncComponent(() => import('./editables/httprequests.vue'));
+// const editable_httptimeout = defineAsyncComponent(() => import('./editables/httptimeout.vue'));
 
 const { findNode, getHandleConnections } = useVueFlow()
 
 const nodeId = computed(() => selectedNodeId.value as string)
 // 获取节点
-type NodeWithVFData = Omit<Node, 'data'> & { data: VFNode }
+const { curSelectedNode } = useCurSelectedNode()
 
-const thisnode = computed<NodeWithVFData | undefined>(() => {
-  const node = findNode(nodeId.value)
-  if (node && node.data) return node as NodeWithVFData
-  return undefined
-})
 watch(
-  () => thisnode.value?.data,
+  () => curSelectedNode.value.data,
   () => {
     // autoSaveWorkflow()
   },
@@ -69,9 +71,9 @@ const isEditingTitle = ref(false)
 const titleInputRef = ref<HTMLInputElement | null>(null)
 const titleInputText = ref('')
 watch(
-  () => nodeId.value,
+  () => selectedNodeId.value,
   (newVal) => {
-    titleInputText.value = thisnode.value?.data.label || ''
+    titleInputText.value = curSelectedNode.value.data.label || ''
   },
   { immediate: true },
 )
@@ -89,16 +91,16 @@ const saveTitle = () => {
   isEditing!.value = false
   isEditingTitle.value = false
   const newLabel = titleInputText.value.trim()
-  if (thisnode.value) {
-    thisnode.value.data.label = newLabel || thisnode.value.data.placeholderlabel
+  if (curSelectedNode.value) {
+    curSelectedNode.value.data.label = newLabel || curSelectedNode.value.data.placeholderlabel
   }
 }
 
 // 输出变量字典{列表}
 const outputVarSelections = computed(() => {
-  const selections: Record<string, any[]> = {}
-  if (!thisnode.value) return selections
-  for (const hid of Object.keys(thisnode.value.data.connections.outputs)) {
+  const selections: Record<string, SelectOption[]> = {}
+  if (!curSelectedNode.value) return selections
+  for (const hid of Object.keys(curSelectedNode.value.data.connections.outputs)) {
     selections[hid] = recursiveFindVariables(nodeId.value, [], [], [], false, [], false, [hid]).map(
       (item) => mapVarItemToSelect(item),
     )
@@ -122,9 +124,9 @@ const selfVarSelections_aouput = computed(() => {
 // 渲染节点payload的内置变量
 const payloadInnerComponents = computed<Record<string, VNode>>(() => {
   const components: Record<string, VNode> = {}
-  if (!thisnode.value) return components
-  thisnode.value.data.payloads.order.forEach((pid) => {
-    const payload = thisnode.value!.data.payloads.byId[pid]
+  if (!curSelectedNode.value) return components
+  curSelectedNode.value.data.payloads.order.forEach((pid) => {
+    const payload = curSelectedNode.value!.data.payloads.byId[pid]
     // if (payload.uitype === 'texttag') {
     //   components[pid] = h(editable_texttag, { nodeId: nodeId.value, pid })
     // }
@@ -135,9 +137,9 @@ const payloadInnerComponents = computed<Record<string, VNode>>(() => {
 // 渲染节点payload数据
 const payloadComponents = computed<Record<string, VNode>>(() => {
   const components: Record<string, VNode> = {}
-  if (!thisnode.value) return components
-  thisnode.value.data.payloads.order.forEach((pid) => {
-    const payload = thisnode.value!.data.payloads.byId[pid]
+  if (!curSelectedNode.value) return components
+  curSelectedNode.value.data.payloads.order.forEach((pid) => {
+    const payload = curSelectedNode.value!.data.payloads.byId[pid]
     let component: VNode | null = null
     switch (payload.uitype) {
       // case 'textinput':
@@ -170,14 +172,14 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
       //     selfVarSelections: selfVarSelections.value,
       //   })
       //   break
-      // case 'aggregatebranch':
-      //   component = h(editable_aggregatebranchs, {
-      //     nodeId: nodeId.value,
-      //     pid,
-      //     selfVarSelections: selfVarSelections.value,
-      //     inputNodes: inputNodes.value,
-      //   })
-      //   break
+      case 'aggregatebranch':
+        component = h(editable_aggregatebranchs, {
+          nodeId: nodeId.value,
+          pid,
+          selfVarSelections: selfVarSelections.value,
+          inputNodes: inputNodes.value,
+        })
+        break
       // case 'llmmodel':
       //   component = h(editable_llmmodel, {
       //     nodeId: nodeId.value,
@@ -203,14 +205,14 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
 
 // 渲染输出的连接
 const outputsComponents = computed<VNode | null>(() => {
-  if (!thisnode.value) return null
-  const uitype = thisnode.value.data.config.outputsUIType
+  if (!curSelectedNode.value) return null
+  const uitype = curSelectedNode.value.data.config.outputsUIType
   switch (uitype) {
-    // case 'tagoutputs':
-    //   return h(editable_tagoutputs, {
-    //     nodeId: nodeId.value,
-    //     outputVarSelections: outputVarSelections.value,
-    //   })
+    case 'tagoutputs':
+      return h(editable_tagoutputs, {
+        nodeId: nodeId.value,
+        outputVarSelections: outputVarSelections.value,
+      })
     // case 'packoutputs':
     //   return h(editable_packoutputs, {
     //     nodeId: nodeId.value,
@@ -228,15 +230,10 @@ const outputsComponents = computed<VNode | null>(() => {
   }
 })
 
-interface InputNode {
-  srcid: string
-  srcohid: string
-}
-
 const inputNodes = computed<Record<string, InputNode[]>>(() => {
   const preNodes: Record<string, InputNode[]> = {}
-  if (!thisnode.value) return preNodes
-  for (const hid of Object.keys(thisnode.value.data.connections.inputs)) {
+  if (!curSelectedNode.value) return preNodes
+  for (const hid of Object.keys(curSelectedNode.value.data.connections.inputs)) {
     const edges = getHandleConnections({ id: hid, type: 'target', nodeId: nodeId.value })
     preNodes[hid] = edges.map((edge) => ({
       srcid: edge.source,
@@ -247,7 +244,7 @@ const inputNodes = computed<Record<string, InputNode[]>>(() => {
 })
 
 const nodedatatext = computed(() => {
-  return thisnode.value ? JSON.stringify(thisnode.value.data, null, 2) : ''
+  return curSelectedNode.value ? JSON.stringify(curSelectedNode.value.data, null, 2) : ''
 })
 
 onMounted(() => {})
@@ -267,7 +264,7 @@ onUnmounted(() => {
           class="card-title"
           @click="startEditTilte"
         >
-          <n-text type="success" strong>{{ thisnode?.data.label }}</n-text>
+          <n-text type="success" strong>{{ curSelectedNode?.data.label }}</n-text>
           <n-icon size="17" depth="2">
             <CreateOutline />
           </n-icon>
@@ -275,7 +272,7 @@ onUnmounted(() => {
         <n-input
           v-else
           v-model:value="titleInputText"
-          :placeholder="thisnode?.data.placeholderlabel"
+          :placeholder="curSelectedNode?.data.placeholderlabel"
           ref="titleInputRef"
           :bordered="false"
           @blur="saveTitle"

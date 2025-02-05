@@ -59,7 +59,7 @@ provide('CodeEditorLangType', CodeEditorLangType)
         <ctrlpanel />
     </Panel> -->
   <Panel class="nodepanel" position="top-right">
-    <nodepanel v-if="!!selectedNodeId" :nodeId="selectedNodeId" />
+    <nodepanel v-if="!!selectedNodeId" />
   </Panel>
   <!-- <AceCodeEditor v-if="!!selectedNodeId" :nodeId="selectedNodeId" :path="CodeEditorPath"
         :langtype="CodeEditorLangType" />

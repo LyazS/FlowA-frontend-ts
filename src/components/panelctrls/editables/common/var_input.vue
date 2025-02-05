@@ -45,32 +45,13 @@
 </template>
 
 <script setup lang="ts">
-import { type Ref, ref, computed, h, inject, defineAsyncComponent, type PropType } from 'vue'
-import {
-  useMessage,
-  NSwitch,
-  NFlex,
-  NText,
-  NIcon,
-  NButton,
-  NCard,
-  NForm,
-  NFormItem,
-  NGrid,
-  NGridItem,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSpace,
-  NTag,
-  type SelectOption,
-} from 'naive-ui'
+import { defineAsyncComponent } from 'vue'
+import { NFlex, NIcon, NButton, NInput, NSelect, type SelectOption } from 'naive-ui'
 import { Add, Close } from '@vicons/ionicons5'
 import { ExVariableTypeSelections } from '@/utils/schemas.ts'
 import { isEditorMode, isEditing } from '@/hooks/useVFlowAttribute.ts'
 import { type VariableTypeName, type VariableType } from '@/utils/schemas.ts'
 
-const cp_var_select = defineAsyncComponent(() => import('./var_select.vue'))
 const cp_var_input_type = defineAsyncComponent(() => import('./var_input_type.vue'))
 interface Props {
   itemKey: string
@@ -110,7 +91,6 @@ const rmItem = () => {
 </script>
 
 <style scoped>
-/* 保持样式不变 */
 .flexctitem {
   align-content: center;
   align-items: center;

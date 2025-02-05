@@ -1,6 +1,7 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import type { EventSourceMessage } from '@microsoft/fetch-event-source'
 import type { VarItem4Selections } from '@/utils/schemas'
+import { type SelectOption } from 'naive-ui'
 
 interface SSEConfig {
   method: string
@@ -148,7 +149,7 @@ export function SubscribeSSE(
   }
 }
 
-export const mapVarItemToSelect = (item: VarItem4Selections): { label: string; value: string } => {
+export const mapVarItemToSelect = (item: VarItem4Selections): SelectOption => {
   return {
     label: `${item.nlabel}/${item.dlabel}/${item.dkey}/${item.dtype}`,
     value: `${item.nodeId}/${item.dpath[0]}/${item.dpath[1]}`,

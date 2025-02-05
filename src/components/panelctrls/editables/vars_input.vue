@@ -12,7 +12,7 @@
       </n-button>
     </n-flex>
     <cp_var_input
-      v-for="(pvar, vindex) in thisnode.data.payloads.byId[pid].data"
+      v-for="(pvar, vindex) in curSelectedNode.data.payloads.byId[pid].data"
       :key="vindex"
       v-model:itemKey="pvar.key"
       v-model:itemType="pvar.type"
@@ -26,11 +26,12 @@
 
 <script lang="ts" setup>
 import { ref, computed, defineAsyncComponent, inject, type ComputedRef } from 'vue'
-import { useMessage, NFlex, NButton, NIcon } from 'naive-ui'
+import { useMessage, NFlex, NButton, NIcon, type SelectOption } from 'naive-ui'
 import { Add } from '@vicons/ionicons5'
-import { useVueFlow } from '@vue-flow/core'
-import type { Node } from '@vue-flow/core'
 import { isEditorMode } from '@/hooks/useVFlowAttribute'
+import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
+const editable_header = defineAsyncComponent(() => import('./common/header.vue'))
+const cp_var_input = defineAsyncComponent(() => import('./common/var_input.vue'))
 
 interface VariableItem {
   key: string
@@ -40,26 +41,21 @@ interface VariableItem {
 
 interface Props {
   nodeId: string
-  selfVarSelections: Array<{ label: string; value: string }>
+  selfVarSelections: SelectOption[]
   pid: string
 }
 
 const props = defineProps<Props>()
-const { findNode } = useVueFlow()
-
-const thisnode = computed(() => findNode(props.nodeId)) as ComputedRef<Node>
+const { curSelectedNode } = useCurSelectedNode()
 
 const addVariable = (): void => {
   const newVar: VariableItem = { key: '', type: 'String', value: '' }
-  thisnode.value.data.payloads.byId[props.pid].data.push(newVar)
+  curSelectedNode.value.data.payloads.byId[props.pid].data.push(newVar)
 }
 
 const rmVariable = (index: number): void => {
-  thisnode.value.data.payloads.byId[props.pid].data.splice(index, 1)
+  curSelectedNode.value.data.payloads.byId[props.pid].data.splice(index, 1)
 }
-
-const editable_header = defineAsyncComponent(() => import('./common/header.vue'))
-const cp_var_input = defineAsyncComponent(() => import('./common/var_input.vue'))
 </script>
 
 <style scoped>
