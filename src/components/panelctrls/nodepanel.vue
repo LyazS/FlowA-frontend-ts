@@ -37,7 +37,7 @@ const { recursiveFindVariables } = useNodeUtils()
 const editable_tagoutputs = defineAsyncComponent(() => import('./editables/tagoutputs.vue'))
 // const editable_packoutputs = defineAsyncComponent(() => import('./editables/packoutputs.vue'));
 // const editable_condoutputs = defineAsyncComponent(() => import('./editables/condoutputs.vue'));
-// const editable_codeoutputs = defineAsyncComponent(() => import('./editables/codeoutputs.vue'));
+const editable_codeoutputs = defineAsyncComponent(() => import('./editables/codeoutputs.vue'))
 // const editable_iter_input = defineAsyncComponent(() => import('./editables/iter_input.vue'));
 // const editable_textinput = defineAsyncComponent(() => import('./editables/textinput.vue'));
 // const editable_textprint = defineAsyncComponent(() => import('./editables/textprint.vue'));
@@ -221,8 +221,8 @@ const outputsComponents = computed<VNode | null>(() => {
     //     nodeId: nodeId.value,
     //     selfVarSelections: selfVarSelections.value,
     //   })
-    // case 'codeoutputs':
-    //   return h(editable_codeoutputs, { nodeId: nodeId.value })
+    case 'codeoutputs':
+      return h(editable_codeoutputs, {})
     default:
       return null
   }

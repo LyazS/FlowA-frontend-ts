@@ -18,16 +18,35 @@ export type VariableTypeName =
 export type VariableType = string | boolean | number | null
 
 export const BaseVariableTypeSelections = [
-  { label: 'String', value: 'String' },
-  { label: 'Integer', value: 'Integer' },
-  { label: 'Number', value: 'Number' },
-  { label: 'Boolean', value: 'Boolean' },
+  { label: '字符串 String', value: 'String' },
+  { label: '整数 Integer', value: 'Integer' },
+  { label: '数字 Number', value: 'Number' },
+  { label: '布尔 Boolean', value: 'Boolean' },
 ]
 
-export const ExVariableTypeSelections = [
+export const VariableTypeSelectionsWRef = [
   ...BaseVariableTypeSelections,
   { label: '引用', value: 'Ref' },
 ]
+
+export const VariableTypesSelectionsWCode = [
+  ...BaseVariableTypeSelections,
+  { label: '字典 Dictionary', value: 'Dict' },
+  { label: '列表 List', value: 'List' },
+]
+
+export const FileVariableTypesSelections = [
+  { label: '图片 Image', value: 'Image' },
+  { label: 'Word文档 Docx', value: 'Docx' },
+  { label: 'PowerPoint PPT', value: 'PPT' },
+  { label: '文本文件 Txt', value: 'Txt' },
+  { label: 'Excel表格 Excel', value: 'Excel' },
+  { label: '音频 Audio', value: 'Audio' },
+  { label: '压缩包 Zip', value: 'Zip' },
+  { label: '视频 Video', value: 'Video' },
+  { label: 'PDF文件 PDF', value: 'PDF' },
+]
+export const CodeOutputTypeSelections = []
 
 export interface VarItem4Selections {
   nodeId: string | number

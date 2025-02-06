@@ -175,7 +175,7 @@ class VFNode implements BaseVFNodeData {
     return dataId
   }
 
-  removeHandleData(connectType: VFNodeConnectionType, handleId: string, did: string): this {
+  rmHandleData(connectType: VFNodeConnectionType, handleId: string, did: string): this {
     const handle = this.connections[connectType][handleId]
     if (handle?.data[did]) {
       delete handle.data[did]
@@ -190,12 +190,28 @@ class VFNode implements BaseVFNodeData {
     this.payloads.order.push(id)
     return id
   }
+  
+  rmPayload(pid: string): this {
+    const payload = this.payloads.byId[pid]
+    if (!payload) return this
+    delete this.payloads.byId[pid]
+    this.payloads.order.splice(this.payloads.order.indexOf(pid), 1)
+    return this
+  }
 
   addResult(content: Omit<VFNodeContentData, 'hid' | 'did'>, rid?: string): string {
     const id = rid || getUuid()
     this.results.byId[id] = { ...content, hid: '', did: '' }
     this.results.order.push(id)
     return id
+  }
+
+  rmResult(rid: string): this {
+    const result = this.results.byId[rid]
+    if (!result) return this
+    delete this.results.byId[rid]
+    this.results.order.splice(this.results.order.indexOf(rid), 1)
+    return this
   }
 
   addResultWithConnection(
@@ -223,6 +239,19 @@ class VFNode implements BaseVFNodeData {
     this.results.byId[_rid] = { ...content, hid: handleId, did: _did }
     this.results.order.push(_rid)
     return _rid
+  }
+
+  rmResultWithConnection(rid: string): this {
+    const result = this.results.byId[rid]
+    if (!result) return this
+    const handleId = result.hid
+    const dataId = result.did
+    if (!dataId || !handleId) return this
+
+    this.rmHandleData(VFNodeConnectionType.outputs, handleId, dataId)
+    delete this.results.byId[rid]
+    this.results.order.splice(this.results.order.indexOf(rid), 1)
+    return this
   }
 
   // 嵌套节点操作 ==================================================

@@ -17,7 +17,7 @@
       <n-select
         :style="{ width: '20%' }"
         size="small"
-        :options="ExVariableTypeSelections"
+        :options="VariableTypeSelectionsWRef"
         :disabled="!isEditorMode"
         :value="itemType"
         @update:value="updateType"
@@ -48,7 +48,7 @@
 import { defineAsyncComponent } from 'vue'
 import { NFlex, NIcon, NButton, NInput, NSelect, type SelectOption } from 'naive-ui'
 import { Add, Close } from '@vicons/ionicons5'
-import { ExVariableTypeSelections } from '@/utils/schemas.ts'
+import { VariableTypeSelectionsWRef } from '@/utils/schemas.ts'
 import { isEditorMode, isEditing } from '@/hooks/useVFlowAttribute.ts'
 import { type VariableTypeName, type VariableType } from '@/utils/schemas.ts'
 
