@@ -1,4 +1,4 @@
-import { Panel, useVueFlow, type GraphNode } from '@vue-flow/core'
+import { type GraphNode } from '@vue-flow/core'
 import type VFNode from '@/components/nodes/VFNodeClass'
 
 export type NodeWithVFData = Omit<GraphNode, 'data'> & { data: VFNode }
@@ -16,7 +16,10 @@ export type VariableTypeName =
   | 'Dict'
 
 export type VariableType = string | boolean | number | null
-
+export interface VariableSelectionType {
+  label: string
+  value: string
+}
 export const BaseVariableTypeSelections = [
   { label: '字符串 String', value: 'String' },
   { label: '整数 Integer', value: 'Integer' },
@@ -46,7 +49,6 @@ export const FileVariableTypesSelections = [
   { label: '视频 Video', value: 'Video' },
   { label: 'PDF文件 PDF', value: 'PDF' },
 ]
-export const CodeOutputTypeSelections = []
 
 export interface VarItem4Selections {
   nodeId: string | number
@@ -62,8 +64,23 @@ export interface InputNode {
   srcohid: string
 }
 
-export interface BranchData {
+export interface AggregateBranchData {
   node: string
   refdata: string
   key: string // 只用作vuedraggable的key
+}
+
+export interface CondBranchData {
+  refdata: string
+  operator: string
+  comparetype: VariableTypeName
+  value: string
+}
+
+export interface CondBranchDict {
+  label: string
+  data: {
+    condType: string
+    conditions: CondBranchData[]
+  }
 }

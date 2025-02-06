@@ -154,7 +154,7 @@ class VFNode implements BaseVFNodeData {
     return this
   }
 
-  removeHandle(connectType: VFNodeConnectionType, handleId: string): this {
+  rmHandle(connectType: VFNodeConnectionType, handleId: string): this {
     if (this.connections[connectType][handleId]) {
       delete this.connections[connectType][handleId]
     }

@@ -64,7 +64,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import { isEditorMode } from '@/hooks/useVFlowAttribute'
 import { useNodeUtils } from '@/hooks/useNodeUtils'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
-import type { InputNode, BranchData } from '@/utils/schemas'
+import type { InputNode, AggregateBranchData } from '@/utils/schemas'
 
 const cp_var_select = defineAsyncComponent(
   () => import('@/components/panelctrls/editables/common/var_select.vue'),
@@ -82,10 +82,10 @@ const { findNode } = useVueFlow()
 const { curSelectedNode } = useCurSelectedNode()
 
 const branchesData = computed({
-  get(): BranchData[] {
+  get(): AggregateBranchData[] {
     return curSelectedNode.value.data.payloads.byId[props.pid].data
   },
-  set(value: BranchData[]) {
+  set(value: AggregateBranchData[]) {
     curSelectedNode.value.data.payloads.byId[props.pid].data = value
   },
 })
@@ -128,7 +128,7 @@ const removeVar = (index: number) => {
 
 watch(
   () => branchesData.value,
-  (newLists: BranchData[]) => {
+  (newLists: AggregateBranchData[]) => {
     if (Array.isArray(newLists) && newLists.length > 0) {
       const firstElement = newLists[0]
       if (firstElement.refdata) {
