@@ -3,24 +3,7 @@
     <n-dialog-provider>
       <n-message-provider>
         <div :style="{ height: '100vh', width: '100vw' }">
-          <Suspense>
-            <vflow />
-            <template #fallback>
-              <n-flex
-                justify="center"
-                align="center"
-                :style="{
-                  height: '100vh',
-                  width: '100vw',
-                  backgroundColor: '#000000',
-                }"
-              >
-                <n-spin :size="50">
-                  <template #description><n-text> 正在加载... </n-text> </template>
-                </n-spin>
-              </n-flex>
-            </template>
-          </Suspense>
+          <vflow />
         </div>
       </n-message-provider>
     </n-dialog-provider>

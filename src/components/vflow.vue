@@ -1,4 +1,9 @@
 <template>
+  <n-modal :show="!isReady" transform-origin="center">
+    <n-spin :size="50">
+      <template #description><n-text> 正在加载... </n-text> </template>
+    </n-spin>
+  </n-modal>
   <VueFlow
     class="basic-flow"
     :connection-mode="ConnectionMode.Strict"
@@ -63,6 +68,7 @@ import {
   watch,
   provide,
 } from 'vue'
+import { NSpin, NText, NModal } from 'naive-ui'
 import { ConnectionMode, VueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { ContextMenu } from '@imengyu/vue3-context-menu'
@@ -78,12 +84,15 @@ import { useVFlowEvents } from '@/hooks/useVFlowEvent'
 import { useKeyboardControls } from '@/hooks/useKeyboardControls'
 
 const { AllVFNodeTypes, importAllNodes } = useVFlowInitial()
-const { initNodeManagement, AllNodeCounters } = useVFlowManager()
+const { initNodeManagement } = useVFlowManager()
 const { initContextMenu, menuOptions, showMenu } = useContextMenu()
 const {} = useVFlowEvents()
 const {} = useKeyboardControls()
-
-await importAllNodes()
-initNodeManagement()
-initContextMenu()
+const isReady = ref(false)
+onMounted(async () => {
+  await importAllNodes()
+  initNodeManagement()
+  initContextMenu()
+  isReady.value = true
+})
 </script>
