@@ -84,18 +84,7 @@ const { curSelectedNode } = useCurSelectedNode()
 
 const branchesData = computed({
   get(): BranchData[] {
-    // return curSelectedNode.value.data.payloads.byId[props.pid].data
-    const bdata: BranchData[] = []
-    for (const [key, value] of Object.entries(
-      curSelectedNode.value.data.payloads.byId[props.pid].data as BranchData[],
-    )) {
-      bdata.push({
-        node: value.node,
-        refdata: value.refdata!,
-        key: getUuid(),
-      })
-    }
-    return bdata
+    return curSelectedNode.value.data.payloads.byId[props.pid].data
   },
   set(value: BranchData[]) {
     curSelectedNode.value.data.payloads.byId[props.pid].data = value
@@ -131,7 +120,7 @@ const getBuildNodeOutVars = (nid_ohid: string) => {
 }
 
 const addVar = () => {
-  branchesData.value.push({ node: '', refdata: '' })
+  branchesData.value = [...branchesData.value, { node: '', refdata: '', key: getUuid() }]
 }
 
 const removeVar = (index: number) => {

@@ -46,5 +46,5 @@ export interface InputNode {
 export interface BranchData {
   node: string
   refdata: string
-  key?: string
+  key: string // 只用作vuedraggable的key
 }
