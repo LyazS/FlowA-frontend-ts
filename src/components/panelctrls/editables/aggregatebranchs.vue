@@ -71,7 +71,6 @@ const cp_var_select = defineAsyncComponent(
 )
 
 interface Props {
-  nodeId: string
   pid: string
   selfVarSelections: any[]
   inputNodes: Record<string, InputNode[]>

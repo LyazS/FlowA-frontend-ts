@@ -42,12 +42,17 @@ enum VFNodeAttachingPos {
   center = 'center',
 }
 
+type CodeEditorLanguage = 'python' | 'javascript' | 'typescript' | 'json' | 'yaml' | 'text'
+
+interface VFNodeContentDataConfig {
+  language: CodeEditorLanguage
+}
 interface VFNodeContentData {
   label: string
   type: string
   key: string
   data: any
-  config?: any
+  config?: VFNodeContentDataConfig
   hid?: string
   did?: string
   uitype?: string
@@ -174,6 +179,7 @@ export type {
   AttachedVFNodeData,
   NestedVFNodeData,
   VFNodeData,
+  CodeEditorLanguage,
 }
 export {
   VFNodeConnectionDataType,

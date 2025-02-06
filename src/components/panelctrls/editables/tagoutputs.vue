@@ -38,7 +38,6 @@ interface NodeOutput {
 }
 
 const props = defineProps<{
-  nodeId: string
   outputVarSelections: Record<string, SelectOption[]>
 }>()
 const { findNode } = useVueFlow()

@@ -21,6 +21,7 @@ import {
   NIcon,
   NText,
   NDivider,
+  NModal,
   type SelectOption,
 } from 'naive-ui'
 import { Panel, useVueFlow } from '@vue-flow/core'
@@ -42,7 +43,7 @@ const editable_tagoutputs = defineAsyncComponent(() => import('./editables/tagou
 // const editable_textprint = defineAsyncComponent(() => import('./editables/textprint.vue'));
 // const editable_texttag = defineAsyncComponent(() => import('./editables/texttag.vue'));
 const editable_header = defineAsyncComponent(() => import('./editables/common/header.vue'))
-// const editable_codeeditor = defineAsyncComponent(() => import('./editables/codeeditor.vue'));
+const editable_codeeditor = defineAsyncComponent(() => import('./editables/codeeditor.vue'))
 const editable_vars_input = defineAsyncComponent(() => import('./editables/vars_input.vue'))
 // const editable_llmprompts = defineAsyncComponent(() => import('./editables/llmprompts.vue'));
 const editable_aggregatebranchs = defineAsyncComponent(
@@ -152,12 +153,11 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
       //     selfVarSelections: selfVarSelections.value,
       //   })
       //   break
-      // case 'codeeditor':
-      //   component = h(editable_codeeditor, { nodeId: nodeId.value, pid })
-      //   break
+      case 'codeeditor':
+        component = h(editable_codeeditor, { pid })
+        break
       case 'vars_input':
         component = h(editable_vars_input, {
-          nodeId: nodeId.value,
           pid,
           selfVarSelections: selfVarSelections.value,
         })
@@ -174,7 +174,6 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
       //   break
       case 'aggregatebranch':
         component = h(editable_aggregatebranchs, {
-          nodeId: nodeId.value,
           pid,
           selfVarSelections: selfVarSelections.value,
           inputNodes: inputNodes.value,
@@ -210,7 +209,6 @@ const outputsComponents = computed<VNode | null>(() => {
   switch (uitype) {
     case 'tagoutputs':
       return h(editable_tagoutputs, {
-        nodeId: nodeId.value,
         outputVarSelections: outputVarSelections.value,
       })
     // case 'packoutputs':

@@ -53,10 +53,10 @@ export const getUuid = (): string => {
 export const sortKeys = (obj: Record<string, any>): string[] =>
   Object.keys(obj).sort((a, b) => a.localeCompare(b))
 
-export const getValueByPath = (obj: Record<string, any>, path: string[]): any => {
+export const getValueByPath = (obj: Record<string, any>, path: (string | number)[]): any => {
   try {
     return path.reduce(
-      (acc: any, key: string) => (acc && acc[key] !== undefined ? acc[key] : undefined),
+      (acc: any, key: string | number) => (acc && acc[key] !== undefined ? acc[key] : undefined),
       obj,
     )
   } catch (error) {
@@ -65,7 +65,11 @@ export const getValueByPath = (obj: Record<string, any>, path: string[]): any =>
   }
 }
 
-export const setValueByPath = (obj: Record<string, any>, path: string[], value: any): void => {
+export const setValueByPath = (
+  obj: Record<string, any>,
+  path: (string | number)[],
+  value: any,
+): void => {
   try {
     const [head, ...tail] = path
     if (tail.length === 0) {
@@ -81,7 +85,7 @@ export const setValueByPath = (obj: Record<string, any>, path: string[], value: 
   }
 }
 
-export const isPathConnected = (obj: Record<string, any>, path: string[]): boolean => {
+export const isPathConnected = (obj: Record<string, any>, path: (string | number)[]): boolean => {
   try {
     const value = getValueByPath(obj, path)
     return value !== undefined

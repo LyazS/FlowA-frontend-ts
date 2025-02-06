@@ -40,7 +40,6 @@ interface VariableItem {
 }
 
 interface Props {
-  nodeId: string
   selfVarSelections: SelectOption[]
   pid: string
 }

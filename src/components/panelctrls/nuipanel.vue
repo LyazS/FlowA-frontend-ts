@@ -16,21 +16,20 @@ import {
 } from 'naive-ui'
 import { Panel, useVueFlow } from '@vue-flow/core'
 // import { useFlowAOperation } from '@/services/useFlowAOperation'
-import { selectedNodeId, isEditorMode, isEditing } from '@/hooks/useVFlowAttribute'
+import {
+  selectedNodeId,
+  isEditorMode,
+  isEditing,
+  isShowCodeEditor,
+} from '@/hooks/useVFlowAttribute'
 import nodepanel from './nodepanel.vue'
 // import ctrlpanel from './ctrlpanel.vue';
 
-// const AceCodeEditor = defineAsyncComponent(() => import('./AceCodeEditor.vue'));
+const AceCodeEditor = defineAsyncComponent(() => import('./AceCodeEditor.vue'))
 // const FlowResults = defineAsyncComponent(() => import('./FlowResults.vue'));
 // const Jinja2Render = defineAsyncComponent(() => import('@/components/panelctrls/Jinja2Render.vue'));
 
 // const { TaskID, WorkflowID, WorkflowName, AutoSaveMessage } = useFlowAOperation();
-const isShowCodeEditor = ref(false)
-const CodeEditorPath = ref<string[]>([])
-const CodeEditorLangType = ref<string>('CodePython')
-provide('isShowCodeEditor', isShowCodeEditor)
-provide('CodeEditorPath', CodeEditorPath)
-provide('CodeEditorLangType', CodeEditorLangType)
 
 // const isShowFlowResults_inner = ref(false);
 // const isShowFlowResults = computed<boolean>({
@@ -61,10 +60,9 @@ provide('CodeEditorLangType', CodeEditorLangType)
   <Panel class="nodepanel" position="top-right">
     <nodepanel v-if="!!selectedNodeId" />
   </Panel>
-  <!-- <AceCodeEditor v-if="!!selectedNodeId" :nodeId="selectedNodeId" :path="CodeEditorPath"
-        :langtype="CodeEditorLangType" />
-    <FlowResults />
-    <Jinja2Render v-if="TaskID" /> -->
+  <AceCodeEditor />
+  <!-- <FlowResults />
+  <Jinja2Render v-if="TaskID" /> -->
 </template>
 
 <style scoped>
