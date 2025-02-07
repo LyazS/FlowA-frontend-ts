@@ -1,3 +1,4 @@
+import { type VariableTypeName } from './var_schemas'
 export const LengthTypeSelections = [
   { label: '长度等于', value: 'len_eq' },
   { label: '长度不等于', value: 'len_ne' },
@@ -38,3 +39,18 @@ export const BooleanTypeSelections = [
   { label: '为true', value: 'istrue' },
   { label: '为false', value: 'isfalse' },
 ]
+
+export interface CondBranchData {
+  refdata: string
+  operator: string
+  comparetype: VariableTypeName
+  value: string
+}
+
+export interface CondBranchDict {
+  label: string
+  data: {
+    condType: string
+    conditions: CondBranchData[]
+  }
+}

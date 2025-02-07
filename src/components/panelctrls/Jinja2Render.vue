@@ -56,7 +56,7 @@ import { useVFlowManagement } from '@/hooks/useVFlowManagement'
 import { useFlowAOperation } from '@/services/useFlowAOperation'
 import { SubscribeSSE } from '@/services/useSSE'
 import { Ellipse, Close, Add, Pencil, DownloadOutline, CloudUploadOutline, CloudDownloadOutline } from '@vicons/ionicons5'
-import { nodeFlags } from '@/utils/schemas'
+import { nodeFlags } from '@/schemas/schemas'
 const { findNode, getNodes } = useVueFlow();
 // const { } = useVFlowManagement();
 const {

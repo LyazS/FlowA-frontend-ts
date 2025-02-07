@@ -4,8 +4,9 @@ import {
   type VFNodeHandleData,
   VFNodeConnectionDataType,
 } from '@/components/nodes/VFNodeInterface'
+import { type SelectOption } from 'naive-ui'
 import { useVueFlow } from '@vue-flow/core'
-import type { VarItem4Selections } from '@/utils/schemas'
+import type { VarItem4Selections } from '@/schemas/schemas'
 
 interface NodeUtilsInstance {
   findVarFromIO: (
@@ -23,6 +24,7 @@ interface NodeUtilsInstance {
     findAllOutput: boolean,
     findOutput: string[],
   ) => VarItem4Selections[]
+  mapVarItemToSelect: (item: VarItem4Selections) => SelectOption
 }
 let instance: NodeUtilsInstance | null = null
 
@@ -140,9 +142,17 @@ export const useNodeUtils = () => {
     return result
   }
 
+  const mapVarItemToSelect = (item: VarItem4Selections): SelectOption => {
+    return {
+      label: `${item.nlabel}/${item.dlabel}/${item.dkey}/${item.dtype}`,
+      value: `${item.nodeId}/${item.dpath[0]}/${item.dpath[1]}`,
+    }
+  }
+
   instance = {
     findVarFromIO,
     recursiveFindVariables,
+    mapVarItemToSelect,
   }
   return instance
 }

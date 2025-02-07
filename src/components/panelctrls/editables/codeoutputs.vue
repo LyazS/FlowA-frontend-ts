@@ -62,26 +62,13 @@
 import { ref, computed, inject } from 'vue'
 import { NFlex, NIcon, NButton, NInput, NSelect } from 'naive-ui'
 import { Add, Close } from '@vicons/ionicons5'
-import { useVueFlow } from '@vue-flow/core'
 import editable_header from './common/header.vue'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
-import {
-  selectedNodeId,
-  isEditorMode,
-  isEditing,
-  isShowCodeEditor,
-  CodeEditorPath,
-  CodeEditorLangType,
-} from '@/hooks/useVFlowAttribute'
+import { isEditorMode, isEditing } from '@/hooks/useVFlowAttribute'
 import { getUuid } from '@/utils/tools'
-import { VariableTypesSelectionsWCode, FileVariableTypesSelections } from '@/utils/schemas'
+import { VariableTypesSelectionsWCode, FileVariableTypesSelections } from '@/schemas/select_schemas'
+import type { VFNodeContentData } from '@/components/nodes/VFNodeInterface'
 
-interface Variable {
-  label: string
-  type: string
-  key: string
-  data: any
-}
 const { curSelectedNode } = useCurSelectedNode()
 
 const CodeVarTypes = [...VariableTypesSelectionsWCode, ...FileVariableTypesSelections]
@@ -89,7 +76,7 @@ const CodeVarTypes = [...VariableTypesSelectionsWCode, ...FileVariableTypesSelec
 const addVariable = (): void => {
   const rid = getUuid()
   const cid = `c-${rid}`
-  const newVariable: Variable = {
+  const newVariable: VFNodeContentData = {
     label: '',
     type: 'String',
     key: '',

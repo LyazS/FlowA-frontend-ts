@@ -78,7 +78,7 @@ import { useRequestMethod } from "@/services/useRequestMethod";
 import {
     typeSelections,
     typeSelectionsWNull,
-} from '@/utils/schemas'
+} from '@/schemas/schemas'
 const message = useMessage();
 const { postData, getData } = useRequestMethod();
 const cp_var_select = defineAsyncComponent(() => import('@/components/panelctrls/editables/common/var_select.vue'));

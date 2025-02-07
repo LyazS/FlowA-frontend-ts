@@ -14,17 +14,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { NH1, NH2, NH3, NH4, NH5, NH6 } from 'naive-ui'
-import type { HeaderType } from '@/utils/schemas'
+import type { HeaderType } from '@/schemas/schemas'
 
-interface HeaderProps {
-  type?: HeaderType
-  level?: 1 | 2 | 3 | 4 | 5 | 6
-}
-
-const props = withDefaults(defineProps<HeaderProps>(), {
-  type: 'default',
-  level: 3,
-})
+const props = withDefaults(
+  defineProps<{
+    type?: HeaderType
+    level?: 1 | 2 | 3 | 4 | 5 | 6
+  }>(),
+  {
+    type: 'default',
+    level: 3,
+  },
+)
 
 const levelMap: Record<
   number,

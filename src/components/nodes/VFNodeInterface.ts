@@ -42,7 +42,7 @@ enum VFNodeAttachingPos {
   center = 'center',
 }
 
-type CodeEditorLanguage = 'python' | 'javascript' | 'typescript' | 'json' | 'yaml' | 'text'
+type CodeEditorLanguage = 'python' | 'json' | 'django' | 'text'
 
 interface VFNodeContentDataConfig {
   language: CodeEditorLanguage

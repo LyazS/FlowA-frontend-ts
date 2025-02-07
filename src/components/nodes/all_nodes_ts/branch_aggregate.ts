@@ -1,4 +1,3 @@
-import { ref } from 'vue'
 import {
   VFNodeConnectionDataType,
   VFNodeConnectionDataAttachedType,
@@ -9,7 +8,9 @@ import {
 } from '@/components/nodes/VFNodeInterface'
 import VFNode from '@/components/nodes/VFNodeClass'
 import NodeVue from '@/components/nodes/all_nodes_vue/basenode.vue'
+import type { AggregateBranchData } from '@/schemas/branch_aggregate'
 export { NodeVue }
+
 export function createNode(): VFNode {
   const node = new VFNode('branch_aggregate', 'basenode', '分支聚合')
   node.setNodeFlag(VFNodeFlag.isTask).setSize(80, 80)
@@ -30,14 +31,14 @@ export function createNode(): VFNode {
       data: [
         // { node: "xxx/output", refdata: "", key: "uuid" },
         // { node: "nid/outputhid", refdata: "", key: "uuid" },
-      ],
+      ] as AggregateBranchData[],
       uitype: 'aggregatebranch',
     },
     'D_BRANCHES',
   )
 
   node.addResultWithConnection(
-    { label: '输出变量', type: "", key: 'output', data: null },
+    { label: '输出变量', type: '', key: 'output', data: null },
     'output',
     'D_OUTPUT',
   )

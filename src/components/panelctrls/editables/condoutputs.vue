@@ -95,7 +95,7 @@
             tertiary
             size="small"
             type="error"
-            @click="rmBranchCondition(branch.rid, cindex)"
+            @click="rmCondition(branch.rid, cindex)"
             :disabled="!isEditorMode"
           >
             <template #icon>
@@ -139,10 +139,13 @@ import editable_header from './common/header.vue'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
 import { getUuid } from '@/utils/tools'
 import { isEditorMode } from '@/hooks/useVFlowAttribute'
-import type { InputNode, CondBranchDict, CondBranchData } from '@/utils/schemas'
-import { VariableTypeSelectionsWRef } from '@/utils/schemas'
-
-import { VFNodeConnectionType, VFNodeConnectionDataType } from '@/components/nodes/VFNodeInterface'
+import type { CondBranchDict, CondBranchData } from '@/schemas/cond_branch'
+import { VariableTypeSelectionsWRef } from '@/schemas/select_schemas'
+import {
+  type VFNodeData,
+  VFNodeConnectionType,
+  VFNodeConnectionDataType,
+} from '@/components/nodes/VFNodeInterface'
 import {
   StartEndTypeSelections,
   EqualTypeSelections,
@@ -151,13 +154,9 @@ import {
   NullTypeSelections,
   NotEuqalTypeSelections,
   BooleanTypeSelections,
-} from '@/utils/cond_schemas'
-const cp_var_select = defineAsyncComponent(
-  () => import('@/components/panelctrls/editables/common/var_select.vue'),
-)
-const cp_var_input_type = defineAsyncComponent(
-  () => import('@/components/panelctrls/editables/common/var_input_type.vue'),
-)
+} from '@/schemas/cond_branch'
+const cp_var_select = defineAsyncComponent(() => import('./common/var_select.vue'))
+const cp_var_input_type = defineAsyncComponent(() => import('./common/var_input_type.vue'))
 
 const props = defineProps<{
   selfVarSelections: SelectOption[]
@@ -260,7 +259,7 @@ const addCondition = (rid: string) => {
   curSelectedNode.value.data.results.byId[rid].data.conditions.push(newCond)
 }
 
-const rmBranchCondition = (rid: string, cindex: number) => {
+const rmCondition = (rid: string, cindex: number) => {
   curSelectedNode.value.data.results.byId[rid].data.conditions.splice(cindex, 1)
 }
 

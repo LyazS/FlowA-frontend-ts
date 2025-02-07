@@ -27,12 +27,11 @@ import {
 import { Panel, useVueFlow } from '@vue-flow/core'
 import { CreateOutline } from '@vicons/ionicons5'
 import { useNodeUtils } from '@/hooks/useNodeUtils'
-import { mapVarItemToSelect } from '@/utils/tools'
 import { selectedNodeId, isEditorMode, isEditing } from '@/hooks/useVFlowAttribute'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
-import { type InputNode } from '@/utils/schemas'
+import { type InputNode } from '@/schemas/schemas'
 
-const { recursiveFindVariables } = useNodeUtils()
+const { recursiveFindVariables, mapVarItemToSelect } = useNodeUtils()
 
 const editable_tagoutputs = defineAsyncComponent(() => import('./editables/tagoutputs.vue'))
 // const editable_packoutputs = defineAsyncComponent(() => import('./editables/packoutputs.vue'));
@@ -120,6 +119,20 @@ const selfVarSelections_aouput = computed(() => {
   return recursiveFindVariables(nodeId.value, ['attach_output'], [], [], false, [], false, []).map(
     (item) => mapVarItemToSelect(item),
   )
+})
+
+// 输入链接的节点
+const inputNodes = computed<Record<string, InputNode[]>>(() => {
+  const preNodes: Record<string, InputNode[]> = {}
+  if (!curSelectedNode.value) return preNodes
+  for (const hid of Object.keys(curSelectedNode.value.data.connections.inputs)) {
+    const edges = getHandleConnections({ id: hid, type: 'target', nodeId: nodeId.value })
+    preNodes[hid] = edges.map((edge) => ({
+      srcid: edge.source,
+      srcohid: edge.sourceHandle,
+    })) as InputNode[]
+  }
+  return preNodes
 })
 
 // 渲染节点payload的内置变量
@@ -225,19 +238,6 @@ const outputsComponents = computed<VNode | null>(() => {
     default:
       return null
   }
-})
-
-const inputNodes = computed<Record<string, InputNode[]>>(() => {
-  const preNodes: Record<string, InputNode[]> = {}
-  if (!curSelectedNode.value) return preNodes
-  for (const hid of Object.keys(curSelectedNode.value.data.connections.inputs)) {
-    const edges = getHandleConnections({ id: hid, type: 'target', nodeId: nodeId.value })
-    preNodes[hid] = edges.map((edge) => ({
-      srcid: edge.source,
-      srcohid: edge.sourceHandle,
-    })) as InputNode[]
-  }
-  return preNodes
 })
 
 const nodedatatext = computed(() => {

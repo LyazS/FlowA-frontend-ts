@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from 'vue'
-import type { NodeWithVFData } from '@/utils/schemas'
+import type { NodeWithVFData } from '@/schemas/schemas'
 import { selectedNodeId } from '@/hooks/useVFlowAttribute'
 import { useVueFlow } from '@vue-flow/core'
 

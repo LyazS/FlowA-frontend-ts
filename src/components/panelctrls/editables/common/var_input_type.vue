@@ -50,29 +50,30 @@
 import { type Ref, ref, computed, h, inject, defineAsyncComponent } from 'vue'
 import { NSwitch, NInput, NInputNumber, type SelectOption } from 'naive-ui'
 import { isEditorMode, isEditing } from '@/hooks/useVFlowAttribute'
-import { type VariableTypeName, type VariableType } from '@/utils/schemas.ts'
+import type { AllVariableTypes, TSVariableType } from '@/schemas/select_schemas'
 const cp_var_select = defineAsyncComponent(() => import('./var_select.vue'))
 
 type SizeType = 'tiny' | 'small' | 'medium' | 'large'
 type NSwitchSize = 'small' | 'medium' | 'large'
 
-interface Props {
-  itemType: VariableTypeName
-  itemValue: VariableType
-  selfVarSelections: SelectOption[]
-  size?: SizeType
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  size: 'small',
-})
+const props = withDefaults(
+  defineProps<{
+    itemType: AllVariableTypes
+    itemValue: TSVariableType
+    selfVarSelections: SelectOption[]
+    size?: SizeType
+  }>(),
+  {
+    size: 'small',
+  },
+)
 
 const emit = defineEmits<{
-  'update:itemValue': [value: VariableType]
+  'update:itemValue': [value: TSVariableType]
 }>()
 
 // 更新 value
-const updateValue = (newValue: VariableType): void => {
+const updateValue = (newValue: TSVariableType): void => {
   emit('update:itemValue', newValue)
 }
 
@@ -94,7 +95,7 @@ const nswitchSize = computed((): NSwitchSize => {
 const stringValue = computed(() => {
   if (props.itemType === 'String') {
     if (typeof props.itemValue !== 'string') {
-      throw new Error('Expected string value')
+      return undefined
     }
     return props.itemValue
   }
@@ -104,7 +105,7 @@ const stringValue = computed(() => {
 const numberValue = computed(() => {
   if (props.itemType === 'Integer' || props.itemType === 'Number') {
     if (typeof props.itemValue !== 'number') {
-      throw new Error('Expected number value')
+      return undefined
     }
     return props.itemValue
   }
@@ -114,7 +115,7 @@ const numberValue = computed(() => {
 const booleanValue = computed(() => {
   if (props.itemType === 'Boolean') {
     if (typeof props.itemValue !== 'boolean') {
-      throw new Error('Expected boolean value')
+      return undefined
     }
     return props.itemValue
   }

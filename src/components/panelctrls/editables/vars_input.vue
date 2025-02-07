@@ -12,7 +12,7 @@
       </n-button>
     </n-flex>
     <cp_var_input
-      v-for="(pvar, vindex) in curSelectedNode.data.payloads.byId[pid].data"
+      v-for="(pvar, vindex) in vardatas"
       :key="vindex"
       v-model:itemKey="pvar.key"
       v-model:itemType="pvar.type"
@@ -28,6 +28,7 @@
 import { ref, computed, defineAsyncComponent, inject, type ComputedRef } from 'vue'
 import { useMessage, NFlex, NButton, NIcon, type SelectOption } from 'naive-ui'
 import { Add } from '@vicons/ionicons5'
+import type { AllVariableTypes, TSVariableType } from '@/schemas/select_schemas'
 import { isEditorMode } from '@/hooks/useVFlowAttribute'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
 const editable_header = defineAsyncComponent(() => import('./common/header.vue'))
@@ -35,7 +36,7 @@ const cp_var_input = defineAsyncComponent(() => import('./common/var_input.vue')
 
 interface VariableItem {
   key: string
-  type: string
+  type: AllVariableTypes
   value: string
 }
 
@@ -46,14 +47,21 @@ interface Props {
 
 const props = defineProps<Props>()
 const { curSelectedNode } = useCurSelectedNode()
-
+const vardatas = computed({
+  get(): VariableItem[] {
+    return curSelectedNode.value.data.payloads.byId[props.pid].data
+  },
+  set(value: VariableItem[]) {
+    curSelectedNode.value.data.payloads.byId[props.pid].data = value
+  },
+})
 const addVariable = (): void => {
   const newVar: VariableItem = { key: '', type: 'String', value: '' }
-  curSelectedNode.value.data.payloads.byId[props.pid].data.push(newVar)
+  vardatas.value.push(newVar)
 }
 
 const rmVariable = (index: number): void => {
-  curSelectedNode.value.data.payloads.byId[props.pid].data.splice(index, 1)
+  vardatas.value.splice(index, 1)
 }
 </script>
 

@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h, inject, watch, defineAsyncComponent, type Ref } from 'vue'
+import { ref, computed, watch, defineAsyncComponent } from 'vue'
 import { NFlex, NIcon, NSelect, NButton } from 'naive-ui'
 import {
   Add as AddIcon,
@@ -59,25 +59,23 @@ import {
 } from '@vicons/ionicons5'
 import { useVueFlow } from '@vue-flow/core'
 import editable_header from './common/header.vue'
-import { mapVarItemToSelect, getUuid } from '@/utils/tools'
+import { getUuid } from '@/utils/tools'
 import { VueDraggable } from 'vue-draggable-plus'
 import { isEditorMode } from '@/hooks/useVFlowAttribute'
 import { useNodeUtils } from '@/hooks/useNodeUtils'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
-import type { InputNode, AggregateBranchData } from '@/utils/schemas'
+import type { AggregateBranchData } from '@/schemas/branch_aggregate'
+import type { InputNode } from '@/schemas/schemas'
 
-const cp_var_select = defineAsyncComponent(
-  () => import('@/components/panelctrls/editables/common/var_select.vue'),
-)
+const cp_var_select = defineAsyncComponent(() => import('./common/var_select.vue'))
 
-interface Props {
+const props = defineProps<{
   pid: string
   selfVarSelections: any[]
   inputNodes: Record<string, InputNode[]>
-}
-const props = defineProps<Props>()
+}>()
 
-const { recursiveFindVariables } = useNodeUtils()
+const { recursiveFindVariables, mapVarItemToSelect } = useNodeUtils()
 const { findNode } = useVueFlow()
 const { curSelectedNode } = useCurSelectedNode()
 
@@ -119,7 +117,7 @@ const getBuildNodeOutVars = (nid_ohid: string) => {
 }
 
 const addVar = () => {
-  branchesData.value = [...branchesData.value, { node: '', refdata: '', key: getUuid() }]
+  branchesData.value.push({ node: '', refdata: '', key: getUuid() })
 }
 
 const removeVar = (index: number) => {

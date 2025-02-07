@@ -20,20 +20,20 @@ import type { SelectOption } from 'naive-ui'
 import { isEditorMode } from '@/hooks/useVFlowAttribute'
 import { isString } from '@/utils/tools'
 
-// 定义组件的Props接口
-interface Props {
-  value: string | number | undefined | null
-  options: SelectOption[]
-  size?: 'tiny' | 'small' | 'medium' | 'large'
-  style?: Record<string, string | number>
-  placeholder?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  size: 'small',
-  style: () => ({}),
-  placeholder: '请选择',
-})
+const props = withDefaults(
+  defineProps<{
+    value: string | number | undefined | null
+    options: SelectOption[]
+    size?: 'tiny' | 'small' | 'medium' | 'large'
+    style?: Record<string, string | number>
+    placeholder?: string
+  }>(),
+  {
+    size: 'small',
+    style: () => ({}),
+    placeholder: '请选择',
+  },
+)
 
 const emit = defineEmits<{
   'update:value': [value: string | number]

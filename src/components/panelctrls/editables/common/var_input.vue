@@ -48,24 +48,24 @@
 import { defineAsyncComponent } from 'vue'
 import { NFlex, NIcon, NButton, NInput, NSelect, type SelectOption } from 'naive-ui'
 import { Add, Close } from '@vicons/ionicons5'
-import { VariableTypeSelectionsWRef } from '@/utils/schemas.ts'
-import { isEditorMode, isEditing } from '@/hooks/useVFlowAttribute.ts'
-import { type VariableTypeName, type VariableType } from '@/utils/schemas.ts'
+import { isEditorMode, isEditing } from '@/hooks/useVFlowAttribute'
+import type { AllVariableTypes, TSVariableType } from '@/schemas/select_schemas'
+import { VariableTypeSelectionsWRef } from '@/schemas/select_schemas'
 
 const cp_var_input_type = defineAsyncComponent(() => import('./var_input_type.vue'))
-interface Props {
+
+const props = defineProps<{
   itemKey: string
-  itemType: VariableTypeName
-  itemValue: VariableType
+  itemType: AllVariableTypes
+  itemValue: TSVariableType
   itemIdx: number
   selfVarSelections: SelectOption[]
-}
-const props = defineProps<Props>()
+}>()
 
 const emit = defineEmits<{
   (e: 'update:itemKey', value: string): void
   (e: 'update:itemType', value: string): void
-  (e: 'update:itemValue', value: VariableType): void
+  (e: 'update:itemValue', value: TSVariableType): void
   (e: 'remove'): void
 }>()
 
@@ -80,7 +80,7 @@ const updateType = (newType: string) => {
 }
 
 // 更新 value
-const updateValue = (newValue: VariableType) => {
+const updateValue = (newValue: TSVariableType) => {
   emit('update:itemValue', newValue)
 }
 
