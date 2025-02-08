@@ -28,24 +28,18 @@
 import { ref, computed, defineAsyncComponent, inject, type ComputedRef } from 'vue'
 import { useMessage, NFlex, NButton, NIcon, type SelectOption } from 'naive-ui'
 import { Add } from '@vicons/ionicons5'
-import type { AllVariableTypes, TSVariableType } from '@/schemas/select_schemas'
+import type { VariableItem } from '@/schemas/var_schemas'
 import { isEditorMode } from '@/hooks/useVFlowAttribute'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
 const editable_header = defineAsyncComponent(() => import('./common/header.vue'))
 const cp_var_input = defineAsyncComponent(() => import('./common/var_input.vue'))
 
-interface VariableItem {
-  key: string
-  type: AllVariableTypes
-  value: string
-}
 
-interface Props {
+
+const props = defineProps<{
   selfVarSelections: SelectOption[]
   pid: string
-}
-
-const props = defineProps<Props>()
+}>()
 const { curSelectedNode } = useCurSelectedNode()
 const vardatas = computed({
   get(): VariableItem[] {

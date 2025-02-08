@@ -38,9 +38,8 @@ const editable_packoutputs = defineAsyncComponent(() => import('./editables/pack
 const editable_condoutputs = defineAsyncComponent(() => import('./editables/condoutputs.vue'))
 const editable_codeoutputs = defineAsyncComponent(() => import('./editables/codeoutputs.vue'))
 const editable_iter_input = defineAsyncComponent(() => import('./editables/iter_input.vue'))
-// const editable_textinput = defineAsyncComponent(() => import('./editables/textinput.vue'));
-// const editable_textprint = defineAsyncComponent(() => import('./editables/textprint.vue'));
-// const editable_texttag = defineAsyncComponent(() => import('./editables/texttag.vue'));
+const editable_textinput = defineAsyncComponent(() => import('./editables/textinput.vue'))
+const editable_texttag = defineAsyncComponent(() => import('./editables/texttag.vue'))
 const editable_header = defineAsyncComponent(() => import('./editables/common/header.vue'))
 const editable_codeeditor = defineAsyncComponent(() => import('./editables/codeeditor.vue'))
 const editable_vars_input = defineAsyncComponent(() => import('./editables/vars_input.vue'))
@@ -49,8 +48,8 @@ const editable_aggregatebranchs = defineAsyncComponent(
   () => import('./editables/aggregatebranchs.vue'),
 )
 const editable_llmmodel = defineAsyncComponent(() => import('./editables/llmmodel.vue'))
-// const editable_httprequests = defineAsyncComponent(() => import('./editables/httprequests.vue'));
-// const editable_httptimeout = defineAsyncComponent(() => import('./editables/httptimeout.vue'));
+const editable_httprequests = defineAsyncComponent(() => import('./editables/httprequests.vue'));
+const editable_httptimeout = defineAsyncComponent(() => import('./editables/httptimeout.vue'));
 
 const { findNode, getHandleConnections } = useVueFlow()
 
@@ -141,9 +140,9 @@ const payloadInnerComponents = computed<Record<string, VNode>>(() => {
   if (!curSelectedNode.value) return components
   curSelectedNode.value.data.payloads.order.forEach((pid) => {
     const payload = curSelectedNode.value!.data.payloads.byId[pid]
-    // if (payload.uitype === 'texttag') {
-    //   components[pid] = h(editable_texttag, { nodeId: nodeId.value, pid })
-    // }
+    if (payload.uitype === 'texttag') {
+      components[pid] = h(editable_texttag, { pid })
+    }
   })
   return components
 })
@@ -156,16 +155,9 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
     const payload = curSelectedNode.value!.data.payloads.byId[pid]
     let component: VNode | null = null
     switch (payload.uitype) {
-      // case 'textinput':
-      //   component = h(editable_textinput, { nodeId: nodeId.value, pid })
-      //   break
-      // case 'textprint':
-      //   component = h(editable_textprint, {
-      //     nodeId: nodeId.value,
-      //     pid,
-      //     selfVarSelections: selfVarSelections.value,
-      //   })
-      //   break
+      case 'textinput':
+        component = h(editable_textinput, { pid })
+        break
       case 'codeeditor':
         component = h(editable_codeeditor, { pid })
         break
@@ -197,16 +189,15 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
           selfVarSelections: selfVarSelections.value,
         })
         break
-      // case 'httprequests':
-      //   component = h(editable_httprequests, {
-      //     nodeId: nodeId.value,
-      //     pid,
-      //     selfVarSelections: selfVarSelections.value,
-      //   })
-      //   break
-      // case 'httptimeout':
-      //   component = h(editable_httptimeout, { nodeId: nodeId.value, pid })
-      //   break
+      case 'httprequests':
+        component = h(editable_httprequests, {
+          pid,
+          selfVarSelections: selfVarSelections.value,
+        })
+        break
+      case 'httptimeout':
+        component = h(editable_httptimeout, { nodeId: nodeId.value, pid })
+        break
     }
     if (component) components[pid] = component
   })
