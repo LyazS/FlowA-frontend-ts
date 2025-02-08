@@ -34,17 +34,17 @@ import { type InputNode } from '@/schemas/schemas'
 const { recursiveFindVariables, mapVarItemToSelect } = useNodeUtils()
 
 const editable_tagoutputs = defineAsyncComponent(() => import('./editables/tagoutputs.vue'))
-// const editable_packoutputs = defineAsyncComponent(() => import('./editables/packoutputs.vue'));
+const editable_packoutputs = defineAsyncComponent(() => import('./editables/packoutputs.vue'))
 const editable_condoutputs = defineAsyncComponent(() => import('./editables/condoutputs.vue'))
 const editable_codeoutputs = defineAsyncComponent(() => import('./editables/codeoutputs.vue'))
-// const editable_iter_input = defineAsyncComponent(() => import('./editables/iter_input.vue'));
+const editable_iter_input = defineAsyncComponent(() => import('./editables/iter_input.vue'))
 // const editable_textinput = defineAsyncComponent(() => import('./editables/textinput.vue'));
 // const editable_textprint = defineAsyncComponent(() => import('./editables/textprint.vue'));
 // const editable_texttag = defineAsyncComponent(() => import('./editables/texttag.vue'));
 const editable_header = defineAsyncComponent(() => import('./editables/common/header.vue'))
 const editable_codeeditor = defineAsyncComponent(() => import('./editables/codeeditor.vue'))
 const editable_vars_input = defineAsyncComponent(() => import('./editables/vars_input.vue'))
-// const editable_llmprompts = defineAsyncComponent(() => import('./editables/llmprompts.vue'));
+const editable_llmprompts = defineAsyncComponent(() => import('./editables/llmprompts.vue'))
 const editable_aggregatebranchs = defineAsyncComponent(
   () => import('./editables/aggregatebranchs.vue'),
 )
@@ -175,16 +175,15 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
           selfVarSelections: selfVarSelections.value,
         })
         break
-      // case 'llmprompts':
-      //   component = h(editable_llmprompts, { nodeId: nodeId.value, pid })
-      //   break
-      // case 'iter_input':
-      //   component = h(editable_iter_input, {
-      //     nodeId: nodeId.value,
-      //     pid,
-      //     selfVarSelections: selfVarSelections.value,
-      //   })
-      //   break
+      case 'llmprompts':
+        component = h(editable_llmprompts, { pid })
+        break
+      case 'iter_input':
+        component = h(editable_iter_input, {
+          pid,
+          selfVarSelections: selfVarSelections.value,
+        })
+        break
       case 'aggregatebranch':
         component = h(editable_aggregatebranchs, {
           pid,
@@ -223,11 +222,11 @@ const outputsComponents = computed<VNode | null>(() => {
       return h(editable_tagoutputs, {
         outputVarSelections: outputVarSelections.value,
       })
-    // case 'packoutputs':
-    //   return h(editable_packoutputs, {
-    //     nodeId: nodeId.value,
-    //     selfVarSelections: selfVarSelections_aouput.value,
-    //   })
+    case 'packoutputs':
+      return h(editable_packoutputs, {
+        nodeId: nodeId.value,
+        selfVarSelections: selfVarSelections_aouput.value,
+      })
     case 'condoutputs':
       return h(editable_condoutputs, {
         selfVarSelections: selfVarSelections.value,

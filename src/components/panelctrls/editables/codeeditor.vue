@@ -22,7 +22,7 @@ const props = defineProps<{
 const { curSelectedNode } = useCurSelectedNode()
 
 const thislang = computed<CodeEditorLanguage>(() => {
-  return curSelectedNode.value.data.payloads.byId[props.pid].config!.language
+  return curSelectedNode.value.data.payloads.byId[props.pid].config!.language!
 })
 
 const editCode = (): void => {

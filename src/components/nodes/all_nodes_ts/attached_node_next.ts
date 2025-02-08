@@ -12,7 +12,7 @@ import NodeVue from '@/components/nodes/all_nodes_vue/attached_node.vue'
 export { NodeVue }
 export function createNode(): VFNode {
   const node = new VFNode('attached_node_next', 'attached_node', '附属节点next').initAsAttachedNode(
-    VFNodeAttachingType.next,
+    VFNodeAttachingType.output,
     [VFNodeAttachingPos.bottom, 1, VFNodeAttachingPos.right, 0],
     'NEXT',
   )

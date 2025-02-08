@@ -32,7 +32,7 @@ enum VFNodeAttachingType {
   output = 'output',
   callbackFunc = 'callbackFunc',
   callbackUser = 'callbackUser',
-  next = 'next',
+  // next = 'next',
 }
 enum VFNodeAttachingPos {
   top = 'top',
@@ -45,7 +45,8 @@ enum VFNodeAttachingPos {
 type CodeEditorLanguage = 'python' | 'json' | 'django' | 'text'
 
 interface VFNodeContentDataConfig {
-  language: CodeEditorLanguage
+  language?: CodeEditorLanguage
+  ref?: string
 }
 interface VFNodeContentData {
   label: string
