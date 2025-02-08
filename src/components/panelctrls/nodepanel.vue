@@ -48,7 +48,7 @@ const editable_vars_input = defineAsyncComponent(() => import('./editables/vars_
 const editable_aggregatebranchs = defineAsyncComponent(
   () => import('./editables/aggregatebranchs.vue'),
 )
-// const editable_llmmodel = defineAsyncComponent(() => import('./editables/llmmodel.vue'));
+const editable_llmmodel = defineAsyncComponent(() => import('./editables/llmmodel.vue'))
 // const editable_httprequests = defineAsyncComponent(() => import('./editables/httprequests.vue'));
 // const editable_httptimeout = defineAsyncComponent(() => import('./editables/httptimeout.vue'));
 
@@ -192,13 +192,12 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
           inputNodes: inputNodes.value,
         })
         break
-      // case 'llmmodel':
-      //   component = h(editable_llmmodel, {
-      //     nodeId: nodeId.value,
-      //     pid,
-      //     selfVarSelections: selfVarSelections.value,
-      //   })
-      //   break
+      case 'llmmodel':
+        component = h(editable_llmmodel, {
+          pid,
+          selfVarSelections: selfVarSelections.value,
+        })
+        break
       // case 'httprequests':
       //   component = h(editable_httprequests, {
       //     nodeId: nodeId.value,

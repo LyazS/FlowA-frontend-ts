@@ -42,7 +42,7 @@ const _BooleanTypeSelections = [
   { label: '为false', value: 'isfalse' },
 ] as const satisfies readonly SelectOption[]
 
-export const CompareTypeSelections = [..._LengthTypeSelections] as SelectOption[]
+export const LengthTypeSelections = [..._LengthTypeSelections] as SelectOption[]
 export const StartEndTypeSelections = [..._StartEndTypeSelections] as SelectOption[]
 export const NullTypeSelections = [..._NullTypeSelections] as SelectOption[]
 export const EqualTypeSelections = [..._EqualTypeSelections] as SelectOption[]
