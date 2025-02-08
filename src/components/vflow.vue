@@ -19,7 +19,7 @@
     delete-key-code="Delete"
   >
     <Background />
-    <!-- <miniMapCtrl /> -->
+    <miniMapCtrl />
     <nuipanel />
 
     <template #edge-normal="customEdgeProps">
@@ -74,7 +74,7 @@ import { Background } from '@vue-flow/background'
 import { ContextMenu } from '@imengyu/vue3-context-menu'
 import connected_edge from '@/components/edges/connected_edge.vue'
 import connecting_edge from '@/components/edges/connecting_edge.vue'
-// import miniMapCtrl from '@/components/panelctrls/miniMapCtrl.vue'
+import miniMapCtrl from '@/components/panelctrls/miniMapCtrl.vue'
 import nuipanel from '@/components/panelctrls/nuipanel.vue'
 
 import { useVFlowInitial } from '@/hooks/useVFlowInitial'
