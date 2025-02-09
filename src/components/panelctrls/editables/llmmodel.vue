@@ -109,9 +109,8 @@ import {
   useMessage,
   type SelectOption,
 } from 'naive-ui'
-import { useVueFlow } from '@vue-flow/core'
 import editable_header from './common/header.vue'
-import { useRequestMethod } from '@/services/useRequestMethod'
+import { getData } from '@/utils/useRequestMethod'
 import { RefValTypeSelections, RefValTypeSelectionsWNull } from '@/schemas/select_schemas'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
 
@@ -131,7 +130,6 @@ const props = defineProps<{
 }>()
 const message = useMessage()
 const { curSelectedNode } = useCurSelectedNode()
-const { postData, getData } = useRequestMethod()
 const cp_var_select = defineAsyncComponent(
   () => import('@/components/panelctrls/editables/common/var_select.vue'),
 )
