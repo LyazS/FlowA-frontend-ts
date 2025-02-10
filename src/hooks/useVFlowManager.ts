@@ -5,10 +5,10 @@ import {
   type XYPosition,
   type Connection,
   type Edge,
+  type FlowExportObject,
 } from '@vue-flow/core'
 import { useVFlowInitial } from '@/hooks/useVFlowInitial'
-import { getUuid, setValueByPath } from '@/utils/tools.js'
-import { useMessage } from 'naive-ui'
+import { getUuid, setValueByPath } from '@/utils/tools'
 import {
   VFNodeFlag,
   VFNodeAttachingPos,
@@ -42,12 +42,13 @@ interface NodeManagementInstance {
   removeNodeFromVFlow: (node: GraphNode) => void
   resetNodeState: (node: GraphNode) => void
   addEdgeToVFlow: (params: Edge) => void
+  loadVflow: (data: FlowExportObject) => void
 }
 let instance: NodeManagementInstance | null = null
 
 export const useVFlowManager = (): NodeManagementInstance => {
   if (instance) return instance
-  const { getNodes, findNode, addNodes, removeNodes, addEdges } = useVueFlow()
+  const { getNodes, findNode, addNodes, removeNodes, addEdges, fromObject } = useVueFlow()
   const { AllTestNodes, createVFNode } = useVFlowInitial()
 
   const AllNodeCounters = ref<Record<string, number>>({})
@@ -55,6 +56,12 @@ export const useVFlowManager = (): NodeManagementInstance => {
 
   const initNodeManagement = () => {
     for (const ntype in AllTestNodes.value) {
+      AllNodeCounters.value[ntype] = 0
+    }
+  }
+
+  const resetCounter = () => {
+    for (const ntype of Object.keys(AllNodeCounters.value)) {
       AllNodeCounters.value[ntype] = 0
     }
   }
@@ -320,6 +327,19 @@ export const useVFlowManager = (): NodeManagementInstance => {
     }
   }
 
+  const loadVflow = async (flow: FlowExportObject) => {
+    removeNodes(getNodes.value)
+    await nextTick()
+    if (flow) {
+      for (const node of flow.nodes) {
+        ;(node.data as VFNode).resetState()
+      }
+      fromObject(flow)
+      buildNestedNodeGraph()
+      resetCounter()
+    }
+  }
+
   instance = {
     AllNodeCounters,
     NestedNodeGraph,
@@ -331,6 +351,7 @@ export const useVFlowManager = (): NodeManagementInstance => {
     removeNodeFromVFlow,
     resetNodeState,
     addEdgeToVFlow,
+    loadVflow,
   }
   return instance
 }

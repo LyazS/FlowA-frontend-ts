@@ -10,8 +10,8 @@ type RequestMethod = 'post' | 'get'
 
 async function axiosRequest(
   url: string,
-  data: any,
-  method: RequestMethod = 'post',
+  method: RequestMethod,
+  data?: any,
   callback?: RequestCallbacks,
 ): Promise<any> {
   try {
@@ -47,12 +47,12 @@ async function axiosRequest(
 
 export const postData = async (
   url: string,
-  data: any,
+  data?: any,
   callback?: RequestCallbacks,
 ): Promise<any> => {
-  return await axiosRequest(url, data, 'post', callback)
+  return await axiosRequest(url, 'post', data, callback)
 }
 
 export const getData = async (url: string, callback?: RequestCallbacks): Promise<any> => {
-  return await axiosRequest(url, null, 'get', callback)
+  return await axiosRequest(url, 'get', null, callback)
 }

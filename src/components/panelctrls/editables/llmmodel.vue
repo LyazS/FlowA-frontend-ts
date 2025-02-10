@@ -110,7 +110,7 @@ import {
   type SelectOption,
 } from 'naive-ui'
 import editable_header from './common/header.vue'
-import { getData } from '@/utils/useRequestMethod'
+import { getData } from '@/utils/requestMethod'
 import { RefValTypeSelections, RefValTypeSelectionsWNull } from '@/schemas/select_schemas'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
 

@@ -21,6 +21,7 @@ import {
   isEditorMode,
   isEditing,
   isShowCodeEditor,
+  AutoSaveMessage,
 } from '@/hooks/useVFlowAttribute'
 import nodepanel from './nodepanel.vue'
 // import ctrlpanel from './ctrlpanel.vue';
@@ -49,12 +50,12 @@ const AceCodeEditor = defineAsyncComponent(() => import('./AceCodeEditor.vue'))
 </script>
 
 <template>
-  <!-- <Panel position="top-left" :style="{ width: 'auto' }">
-        <n-flex justify="flex-start">
-            <n-text depth="3">{{ AutoSaveMessage }}</n-text>
-        </n-flex>
-    </Panel>
-    <Panel position="top-right" :style="{ width: 'auto' }">
+  <Panel position="top-left" :style="{ width: 'auto' }">
+    <n-flex justify="flex-start">
+      <n-text depth="3">{{ AutoSaveMessage }}</n-text>
+    </n-flex>
+  </Panel>
+  <!-- <Panel position="top-right" :style="{ width: 'auto' }">
         <ctrlpanel />
     </Panel> -->
   <Panel class="nodepanel" position="top-right">
