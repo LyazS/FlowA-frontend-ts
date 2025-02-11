@@ -27,11 +27,13 @@ import {
 import { Panel, useVueFlow } from '@vue-flow/core'
 import { CreateOutline } from '@vicons/ionicons5'
 import { useNodeUtils } from '@/hooks/useNodeUtils'
+import { useVFlowSaver } from '@/services/useVFlowSaver'
 import { selectedNodeId, isEditorMode, isEditing } from '@/hooks/useVFlowAttribute'
 import { useCurSelectedNode } from '@/hooks/useCurSelectedNode'
 import { type InputNode } from '@/schemas/schemas'
 
 const { recursiveFindVariables, mapVarItemToSelect } = useNodeUtils()
+const { autoSaveWorkflow } = useVFlowSaver()
 
 const editable_tagoutputs = defineAsyncComponent(() => import('./editables/tagoutputs.vue'))
 const editable_packoutputs = defineAsyncComponent(() => import('./editables/packoutputs.vue'))
@@ -60,7 +62,7 @@ const { curSelectedNode } = useCurSelectedNode()
 watch(
   () => curSelectedNode.value.data,
   () => {
-    // autoSaveWorkflow()
+    autoSaveWorkflow()
   },
   { deep: true },
 )

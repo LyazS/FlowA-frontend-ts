@@ -101,9 +101,7 @@ export const useVFlowRequest = () => {
           }
         }
       } else if (type === 'append') {
-        // Handle append logic
       } else if (type === 'remove') {
-        // Handle remove logic
       }
     }
   }
@@ -137,24 +135,24 @@ export const useVFlowRequest = () => {
     },
   )
 
-  const debouncedAutoSaveWorkflow = debounce(async () => {
-    if (!WorkflowID.value) return
-    const data = {
-      wid: WorkflowID.value,
-      location: 'vflow',
-      data: toObject(),
-    }
-    const res = await postData('workflow/update', data)
-    if (res.success) {
-      AutoSaveMessage.value = `自动保存 ${new Date().toLocaleTimeString()}`
-    }
-  }, 1000)
+  // const debouncedAutoSaveWorkflow = debounce(async () => {
+  //   if (!WorkflowID.value) return
+  //   const data = {
+  //     wid: WorkflowID.value,
+  //     location: 'vflow',
+  //     data: toObject(),
+  //   }
+  //   const res = await postData('workflow/update', data)
+  //   if (res.success) {
+  //     AutoSaveMessage.value = `自动保存 ${new Date().toLocaleTimeString()}`
+  //   }
+  // }, 1000)
 
-  const autoSaveWorkflow = () => {
-    if (!isEditorMode.value) return
-    console.log('try to autoSaveWorkflow')
-    debouncedAutoSaveWorkflow()
-  }
+  // const autoSaveWorkflow = () => {
+  //   if (!isEditorMode.value) return
+  //   console.log('try to autoSaveWorkflow')
+  //   debouncedAutoSaveWorkflow()
+  // }
 
   const renameWorkflow = async (wid: string, name: string, callback: any) => {
     const data = {
@@ -201,8 +199,8 @@ export const useVFlowRequest = () => {
         WorkflowName.value = null
         message.error(res.message)
       } else {
-        const name = res.data[0]
-        const flow = res.data[1]
+        const name = res.data['name']
+        const flow = res.data['vflow']
         loadVflow(flow)
         WorkflowID.value = wid
         WorkflowName.value = name

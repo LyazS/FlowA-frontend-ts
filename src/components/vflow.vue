@@ -1,5 +1,5 @@
 <template>
-  <n-modal :show="!isReady" display-directive="if" :auto-focus="false" transform-origin="center">
+  <n-modal :show="!isReady" display-directive="if" :auto-focus="false" transform-origin="center" :z-index="99999">
     <n-spin :size="50">
       <template #description><n-text> 正在加载... </n-text> </template>
     </n-spin>

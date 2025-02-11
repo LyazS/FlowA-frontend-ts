@@ -3,6 +3,7 @@ import { ref, reactive, type Ref } from 'vue'
 import { useVueFlow, type GraphNode, type GraphEdge } from '@vue-flow/core'
 import { type NodeAddInfo, useVFlowManager } from './useVFlowManager'
 import { useVFlowInitial } from './useVFlowInitial'
+import { useVFlowRequest } from '@/services/useVFlowRequest'
 import { VFNodeFlag } from '@/components/nodes/VFNodeInterface'
 import VFNode from '@/components/nodes/VFNodeClass'
 // 定义菜单项类型
@@ -60,8 +61,13 @@ export const useContextMenu = (): ContextMenuInstance => {
   if (instance) return instance
   const { screenToFlowCoordinate, removeEdges } = useVueFlow()
   const { AllTestNodes } = useVFlowInitial()
-  const { removeNodeFromVFlow, buildNestedNodeGraph, recursiveUpdateNodeSize, addNodeToVFlow } =
-    useVFlowManager()
+  const {
+    removeNodeFromVFlow,
+    removeEdgeFromVFlow,
+    buildNestedNodeGraph,
+    recursiveUpdateNodeSize,
+    addNodeToVFlow,
+  } = useVFlowManager()
 
   const AddNodesInPane = ref<VFNode[]>([])
   const AddNodesInNest = ref<VFNode[]>([])
@@ -122,15 +128,13 @@ export const useContextMenu = (): ContextMenuInstance => {
           },
         }
         addNodeToVFlow(node_info)
-        // autoSaveWorkflow()
       },
     }))
   }
 
   const onClickContextMenuRmEdge = (event_cm: EdgeContextMenuEvent) => {
     console.debug('删除边')
-    removeEdges([event_cm.edge])
-    // autoSaveWorkflow();
+    removeEdgeFromVFlow([event_cm.edge])
   }
 
   const showContextMenu = (event_cm: ContextMenuEvent) => {

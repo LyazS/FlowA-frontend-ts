@@ -46,7 +46,7 @@ import { useVFlowRequest } from '@/services/useVFlowRequest'
 import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/services/useVFlowRequest'
 import type { ButtonType } from '@/schemas/naiveui_schemas'
 import { renderIcon } from '@/utils/tools'
-const { createNewWorkflow, getWorkflows } = useVFlowRequest()
+const { createNewWorkflow, getWorkflows, uploadWorkflow } = useVFlowRequest()
 
 const message = useMessage()
 const dialog = useDialog()
@@ -142,35 +142,33 @@ const uploadWF = async ({
   onProgress,
 }: UploadCustomRequestOptions): Promise<void> => {
   if (file.file?.type === 'application/json') {
-    // console.log(file.file)
-    const reader = new FileReader();
+    const reader = new FileReader()
 
     reader.onload = async (event: ProgressEvent<FileReader>) => {
       try {
         if (!event.target?.result) {
-          throw new Error('读取文件内容为空');
+          throw new Error('读取文件内容为空')
         }
-        console.log(event.target.result)
-        const jsonContent = JSON.parse(event.target.result as string);
-        // await uploadWorkflow(file.name.replace('.json', ''), jsonContent);
-        // isShowVFlowMgr.value = false;
+        const jsonContent = JSON.parse(event.target.result as string)
+        await uploadWorkflow(file.name.replace('.json', ''), jsonContent)
+        isShowVFlowMgr.value = false
       } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : '未知错误';
-        message.error(`JSON 解析失败: ${errorMessage}`);
+        const errorMessage = error instanceof Error ? error.message : '未知错误'
+        message.error(`JSON 解析失败: ${errorMessage}`)
       }
-    };
+    }
 
     reader.onerror = () => {
-      const error = reader.error || new Error('文件读取失败');
-      message.error(`读取文件失败: ${error}`);
-    };
+      const error = reader.error || new Error('文件读取失败')
+      message.error(`读取文件失败: ${error}`)
+    }
 
-    reader.readAsText(file.file);
+    reader.readAsText(file.file)
   } else {
-    const error = new Error('不支持的文件类型');
-    message.error(error.message);
+    const error = new Error('不支持的文件类型')
+    message.error(error.message)
   }
-};
+}
 
 watch(isShowVFlowMgr, async (newVal) => {
   if (newVal) {

@@ -17,8 +17,7 @@ import {
   type PaneContextMenuEvent,
   type ContextMenuEvent,
 } from '@/hooks/useContextMenu'
-// import { useFlowAOperation } from '@/services/useFlowAOperation';
-
+import { useVFlowSaver } from '@/services/useVFlowSaver'
 import { selectedNodeId } from '@/hooks/useVFlowAttribute'
 import type VFNode from '@/components/nodes/VFNodeClass'
 
@@ -51,7 +50,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
     onEdgeContextMenu,
   } = useVueFlow()
 
-  //   const { autoSaveWorkflow } = useFlowAOperation()
+  const { autoSaveWorkflow } = useVFlowSaver()
 
   // 节点选择事件
   const selcetNodeEvent = (event: NodeMouseEvent) => {
@@ -93,7 +92,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
         recursiveUpdateNodeSize(node.parentNode)
       }
     })
-    // autoSaveWorkflow()
+    autoSaveWorkflow()
   })
 
   onNodeContextMenu((event: NodeMouseEvent) => {
@@ -130,7 +129,6 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
 
   onConnect((connection: Connection) => {
     addEdgeToVFlow(connection as Edge)
-    // autoSaveWorkflow()
   })
 
   instance = {}
