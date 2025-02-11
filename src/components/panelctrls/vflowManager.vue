@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { type Ref, ref, onMounted, reactive, h, inject, computed, watch } from 'vue'
-import { useVueFlow, useHandleConnections } from '@vue-flow/core'
 import {
   useDialog,
   NText,
@@ -20,6 +19,7 @@ import {
   NSkeleton,
   useMessage,
   NInput,
+  type UploadCustomRequestOptions,
 } from 'naive-ui'
 import {
   Ellipse,
@@ -40,159 +40,26 @@ import {
   WorkflowID,
   WorkflowMode,
   WorkflowName,
-  isShowFlowResults,
+  isShowVFlowMgr,
 } from '@/hooks/useVFlowAttribute'
-
-interface Workflow {
-  wid: string
-  name: string
-  type: string
-}
-
-interface Result {
-  rwid: string
-  label: string
-  desc: string
-}
+import { useVFlowRequest } from '@/services/useVFlowRequest'
+import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/services/useVFlowRequest'
+import type { ButtonType } from '@/schemas/naiveui_schemas'
+import { renderIcon } from '@/utils/tools'
+const { createNewWorkflow, getWorkflows } = useVFlowRequest()
 
 const message = useMessage()
 const dialog = useDialog()
-const results = ref<Result[]>([])
-const workflows = ref<Workflow[]>([])
+const release_wfs = ref<FAReleaseWorkflowInfo[]>([])
+const workflows = ref<(FAWorkflowInfo & { type: ButtonType })[]>([])
 
-const titlename = computed(() => {
-  return `工作流管理器`
-})
-const history_titlename = computed(() => {
+const release_titlename = computed(() => {
   if (!WorkflowID.value) {
-    return '选择工作流以查看历史记录'
+    return '选择工作流以查看版本记录'
   }
-  return `【${WorkflowName.value}】的历史记录`
+  return `【${WorkflowName.value}】的版本记录`
 })
-const loadResult_btn = async (tid: string) => {
-  if (TaskID.value !== tid) {
-    selectedNodeId.value = null
-    await loadResult(tid)
-  }
-  isShowFlowResults.value = false
-}
-const loadWorkflow_btn = async (wid: string) => {
-  if (WorkflowID.value == wid) return
-  if (!isEditorMode.value) {
-    await returnEditorMode(false)
-  }
-  selectedNodeId.value = null
-  await loadWorkflow(wid)
-  isShowFlowResults.value = false
-}
 
-const updateResults = async () => {
-  const res = await getResults()
-  // console.log(res);
-  results.value = []
-  for (const item of res) {
-    let result_type = 'default'
-    if (item.tid === TaskID.value) {
-      result_type = 'success'
-    }
-    let status_color = '#d5d5d6'
-    if (item.status === 'Pending') {
-      status_color = '#d5d5d6'
-    } else if (item.status === 'Running') {
-      status_color = '#70c0e8'
-    } else if (item.status === 'Success') {
-      status_color = '#63e2b7'
-    } else if (item.status === 'Canceled') {
-      status_color = '#f2c97d'
-    } else if (item.status === 'Error') {
-      status_color = '#e88080'
-    }
-    let st_str = '',
-      ed_str = ''
-    if (item.starttime) {
-      const sttime = new Date(item.starttime)
-      const formatted_sttime = `【${(sttime.getMonth() + 1).toString().padStart(2, '0')}.${sttime.getDate().toString().padStart(2, '0')}】 ${sttime.toTimeString().split(' ')[0]}`
-      st_str = formatted_sttime
-    } else {
-      st_str = '未开始'
-    }
-    if (item.endtime) {
-      const edtime = new Date(item.endtime)
-      const formatted_edtime = `${edtime.toTimeString().split(' ')[0]}`
-      ed_str = formatted_edtime
-    } else {
-      ed_str = '未结束'
-    }
-    results.value.push({
-      tid: item.tid,
-      type: result_type,
-      status: status_color,
-      label: `${st_str} -> ${ed_str}`,
-    })
-  }
-}
-const updateWorkflows = async () => {
-  const res = await getWorkflows()
-  // console.log(res);
-  workflows.value = []
-  for (const item of res) {
-    let wf_type = 'default'
-    if (item.wid == WorkflowID.value) {
-      wf_type = 'success'
-    }
-    workflows.value.push({
-      ...item,
-      type: wf_type,
-    })
-  }
-}
-const deleteWorkflow_btn = async (wid: string, wname: string) => {
-  dialog.warning({
-    title: '即将删除工作流',
-    content: `【${wname}】`,
-    positiveText: '确定',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      await deleteWorkflow(wid)
-      await updateWorkflows()
-    },
-  })
-}
-
-const remaneWorkflow_btn = async (wid: string, wname: string) => {
-  const new_name = ref(wname)
-  dialog.warning({
-    title: '重命名工作流',
-    content: () =>
-      h(
-        NInput,
-        {
-          value: new_name.value,
-          onUpdateValue: (value) => {
-            new_name.value = value
-          },
-        },
-        {},
-      ),
-    positiveText: '确定',
-    negativeText: '取消',
-    onPositiveClick: async () => {
-      if (new_name.value.trim() === '') {
-        message.error('名称不能为空')
-        return
-      }
-      await renameWorkflow(wid, new_name.value, {
-        success: () => {
-          message.success(`重命名为【${new_name.value}】`)
-        },
-        error: (err) => {
-          message.error(`重命名【${new_name.value}】失败: ${err}`)
-        },
-      })
-      await updateWorkflows()
-    },
-  })
-}
 const createNewWorkflow_btn = async () => {
   const new_name = ref('')
   dialog.warning({
@@ -217,17 +84,23 @@ const createNewWorkflow_btn = async () => {
       }
       selectedNodeId.value = null
       await createNewWorkflow(new_name.value)
-      isShowFlowResults.value = false
+      isShowVFlowMgr.value = false
     },
   })
 }
-const downloadWorkflow_btn = async (wid: string) => {
-  await downloadWorkflow(wid)
-}
-const renderIcon = (icon: Component) => {
-  return () => {
-    return h(NIcon, null, {
-      default: () => h(icon),
+
+const updateWorkflows = async () => {
+  const res = await getWorkflows()
+  console.log(res)
+  workflows.value = []
+  for (const item of res) {
+    let wf_type: ButtonType = 'default'
+    if (item.wid == WorkflowID.value) {
+      wf_type = 'success'
+    }
+    workflows.value.push({
+      ...item,
+      type: wf_type,
     })
   }
 }
@@ -249,14 +122,15 @@ const wfOperations = [
   },
 ]
 const handleSelectWFOperator = (key: string, wid: string, wname: string) => {
-  if (key === 'rename') {
-    remaneWorkflow_btn(wid, wname)
-  } else if (key === 'exportWF') {
-    downloadWorkflow_btn(wid)
-  } else if (key === 'deleteWF') {
-    deleteWorkflow_btn(wid, wname)
-  }
+  // if (key === 'rename') {
+  //   remaneWorkflow_btn(wid, wname)
+  // } else if (key === 'exportWF') {
+  //   downloadWorkflow_btn(wid)
+  // } else if (key === 'deleteWF') {
+  //   deleteWorkflow_btn(wid, wname)
+  // }
 }
+
 const uploadWF = async ({
   file,
   data,
@@ -266,53 +140,56 @@ const uploadWF = async ({
   onFinish,
   onError,
   onProgress,
-}: any) => {
-  // console.log(file.name);
-  // console.log(file.file);
-  // 检查文件类型是否为 JSON
-  if (file.file && file.file.type === 'application/json') {
-    const reader = new FileReader() // 创建 FileReader 对象
+}: UploadCustomRequestOptions): Promise<void> => {
+  if (file.file?.type === 'application/json') {
+    // console.log(file.file)
+    const reader = new FileReader();
 
-    // 读取文件内容
-    reader.onload = async (event) => {
+    reader.onload = async (event: ProgressEvent<FileReader>) => {
       try {
-        const jsonContent = JSON.parse(event.target.result) // 解析 JSON
-        // console.log('文件内容:', jsonContent); // 打印 JSON 内容
-        await uploadWorkflow(file.name.replace('.json', ''), jsonContent)
-        isShowFlowResults.value = false
-      } catch (error) {
-        message.error(`JSON 解析失败:${error}`)
+        if (!event.target?.result) {
+          throw new Error('读取文件内容为空');
+        }
+        console.log(event.target.result)
+        const jsonContent = JSON.parse(event.target.result as string);
+        // await uploadWorkflow(file.name.replace('.json', ''), jsonContent);
+        // isShowVFlowMgr.value = false;
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : '未知错误';
+        message.error(`JSON 解析失败: ${errorMessage}`);
       }
-    }
+    };
 
-    reader.onerror = (error) => {
-      message.error(`读取文件失败:${error}`)
-    }
+    reader.onerror = () => {
+      const error = reader.error || new Error('文件读取失败');
+      message.error(`读取文件失败: ${error}`);
+    };
 
-    reader.readAsText(file.file) // 以文本形式读取文件
+    reader.readAsText(file.file);
   } else {
-    message.error('文件不是 JSON 类型')
+    const error = new Error('不支持的文件类型');
+    message.error(error.message);
   }
-}
+};
 
-watch(isShowFlowResults, async (newVal) => {
+watch(isShowVFlowMgr, async (newVal) => {
   if (newVal) {
     await updateWorkflows()
-    await updateResults()
+    // await updateResults()
   }
 })
 
 onMounted(async () => {
   await updateWorkflows()
-  await updateResults()
+  // await updateResults()
 })
 </script>
 <template>
-  <n-modal v-model:show="isShowFlowResults" :close-on-esc="true" transform-origin="center">
+  <n-modal v-model:show="isShowVFlowMgr" :close-on-esc="true" transform-origin="center">
     <n-card
-      :title="titlename"
+      title="工作流管理器"
       closable
-      @close="isShowFlowResults = false"
+      @close="isShowVFlowMgr = false"
       :style="{ width: '80%', maxWidth: '1000px' }"
     >
       <n-grid x-gap="0" :cols="15">
@@ -376,12 +253,12 @@ onMounted(async () => {
           </n-flex>
         </n-grid-item>
         <n-grid-item :span="6">
-          <n-text>{{ history_titlename }}</n-text>
+          <n-text>{{ release_titlename }}</n-text>
           <n-skeleton v-if="!WorkflowID" text :repeat="5" :sharp="false" size="medium" />
           <n-scrollbar v-else style="max-height: 50vh">
             <n-flex vertical :style="{ width: '100%' }">
               <n-button
-                v-for="(item, idx) in results"
+                v-for="(item, idx) in release_wfs"
                 :key="'result_' + idx"
                 @click="loadResult_btn(item.tid)"
                 secondary

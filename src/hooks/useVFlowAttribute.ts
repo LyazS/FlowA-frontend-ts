@@ -21,4 +21,5 @@ export const isEditorMode = computed(() => WorkflowMode.value === WorkflowModeTy
 export const WorkflowID = ref<string | null>(null)
 export const WorkflowName = ref<string | null>(null)
 
-export const isShowFlowResults = ref(false)
+export const isShowVFlowMgr = ref(false)
+export const isShowJinja2Render = ref(false)

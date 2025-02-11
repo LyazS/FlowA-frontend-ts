@@ -1,6 +1,7 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import type { EventSourceMessage } from '@microsoft/fetch-event-source'
-
+import { h } from 'vue'
+import { NIcon } from 'naive-ui'
 
 interface SSEConfig {
   method: string
@@ -152,7 +153,6 @@ export function SubscribeSSE(
   }
 }
 
-
 export function deepFreeze<T>(obj: T): T {
   const propNames = Object.getOwnPropertyNames(obj)
 
@@ -199,4 +199,12 @@ export const downloadJson = (jsonData: string, filename: string): void => {
 
   URL.revokeObjectURL(url)
   document.body.removeChild(link)
+}
+
+export const renderIcon = (icon: any) => {
+  return () => {
+    return h(NIcon, null, {
+      default: () => h(icon),
+    })
+  }
 }

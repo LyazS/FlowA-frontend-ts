@@ -10,7 +10,6 @@ import { debounce } from 'lodash'
 import { useMessage } from 'naive-ui'
 import { selectedNodeId } from '@/hooks/useVFlowAttribute'
 import {
-  TaskID,
   WorkflowID,
   WorkflowName,
   AutoSaveMessage,
@@ -28,10 +27,15 @@ interface SSEResponseData {
   }[]
 }
 
-interface FAWorkflow {
+export interface FAWorkflowInfo {
   wid: string
   name: string
-  vflow: FlowExportObject
+  lastModified: string
+}
+export interface FAReleaseWorkflowInfo {
+  rwid: string
+  label: string
+  desc: string
 }
 
 interface FAResult {
@@ -41,9 +45,28 @@ interface FAResult {
   endtime: string
 }
 
-let instance: any = null
+interface VFlowRequestInstance {
+  // loadWorkflow: (wid: string | null) => Promise<void>
+  // autoSaveWorkflow: () => void
+  createNewWorkflow: (name: string) => Promise<void>
+  uploadWorkflow: (name: string, wf_json: any) => Promise<void>
+  // downloadWorkflow: (wid: string) => Promise<void>
+  // renameWorkflow: (wid: string, name: string, callback: any) => Promise<void>
+  // runflow: (callback: any) => Promise<void>
+  // stopflow: () => Promise<void>
+  getWorkflows: () => Promise<FAWorkflowInfo[]>
+  // loadResult: (tid: string) => Promise<void>
+  // getResults: (tid: string) => Promise<FAResult[]>
+  // clearTaskID: () => void
+  // setTaskID: (tid: string) => void
+  // returnEditorMode: (isEdit: boolean) => Promise<void>
+  // deleteWorkflow: (wid: string) => Promise<void>
+  // onMountedFunc: () => void
+}
+let instance: VFlowRequestInstance | null = null
+// let instance: any = null
 
-export const useFlowAOperation = () => {
+export const useVFlowRequest = () => {
   if (instance) return instance
 
   const {
@@ -145,7 +168,7 @@ export const useFlowAOperation = () => {
     }
   }
 
-  const getWorkflows = async (): Promise<FAWorkflow[]> => {
+  const getWorkflows = async (): Promise<FAWorkflowInfo[]> => {
     const res = await getData('workflow/readall')
     if (!res.success) {
       message.error(res.message)
@@ -161,9 +184,9 @@ export const useFlowAOperation = () => {
     console.log(`create Workflow: `, res)
     if (!res.success) return
 
-    WorkflowID.value = res.data
+    WorkflowID.value = res.data as string
     WorkflowName.value = name
-    localStorage.setItem('curWorkflowID', WorkflowID.value as string)
+    localStorage.setItem('curWorkflowID', WorkflowID.value)
     await returnEditorMode(false)
   }
 
@@ -219,7 +242,10 @@ export const useFlowAOperation = () => {
 
   const runflow = async (callback: any = null) => {
     const vflow = toObject()
-    return await postData(`api/run`, { wid: WorkflowID.value, vflow: vflow }, {
+    return await postData(
+      `api/run`,
+      { wid: WorkflowID.value, vflow: vflow },
+      {
         before: callback?.before,
         success: async (data: any) => {
           if (callback?.success) callback.success(data)
@@ -240,7 +266,8 @@ export const useFlowAOperation = () => {
           }
         },
         error: callback?.error,
-      })
+      },
+    )
   }
 
   const deleteWorkflow = async (wid: string) => {
@@ -258,13 +285,13 @@ export const useFlowAOperation = () => {
   }
 
   const setTaskID = (tid: string) => {
-    TaskID.value = tid
+    // TaskID.value = tid
     nodesDraggable.value = false
     nodesConnectable.value = false
   }
 
   const clearTaskID = () => {
-    TaskID.value = null
+    // TaskID.value = null
     nodesDraggable.value = true
     nodesConnectable.value = true
   }
@@ -291,7 +318,7 @@ export const useFlowAOperation = () => {
     console.log(`load Result ${tid}: `, res)
     if (res.success) {
       loadVflow(res.data)
-      TaskID.value = tid
+      // TaskID.value = tid
       nodesDraggable.value = false
       nodesConnectable.value = false
       console.log('loadResult Done.')
@@ -318,25 +345,19 @@ export const useFlowAOperation = () => {
   })
 
   instance = {
-    TaskID,
-    WorkflowID,
-    WorkflowName,
-    Jinja2RenderNodeIDs,
-    AutoSaveMessage,
-    isEditorMode,
-    runflow,
-    autoSaveWorkflow,
+    // runflow,
+    // autoSaveWorkflow,
     createNewWorkflow,
     uploadWorkflow,
-    renameWorkflow,
+    // renameWorkflow,
     getWorkflows,
-    loadWorkflow,
-    getResults,
-    loadResult,
-    returnEditorMode,
-    deleteWorkflow,
-    downloadWorkflow,
-    onMountedFunc,
+    // loadWorkflow,
+    // getResults,
+    // loadResult,
+    // returnEditorMode,
+    // deleteWorkflow,
+    // downloadWorkflow,
+    // onMountedFunc,
   }
   return instance
 }

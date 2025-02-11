@@ -24,10 +24,10 @@ import {
   AutoSaveMessage,
 } from '@/hooks/useVFlowAttribute'
 import nodepanel from './nodepanel.vue'
-// import ctrlpanel from './ctrlpanel.vue';
+import ctrlpanel from './ctrlpanel.vue';
 
 const AceCodeEditor = defineAsyncComponent(() => import('./AceCodeEditor.vue'))
-// const FlowResults = defineAsyncComponent(() => import('./FlowResults.vue'));
+const vflowManager = defineAsyncComponent(() => import('./vflowManager.vue'));
 // const Jinja2Render = defineAsyncComponent(() => import('@/components/panelctrls/Jinja2Render.vue'));
 
 // const { TaskID, WorkflowID, WorkflowName, AutoSaveMessage } = useFlowAOperation();
@@ -55,15 +55,15 @@ const AceCodeEditor = defineAsyncComponent(() => import('./AceCodeEditor.vue'))
       <n-text depth="3">{{ AutoSaveMessage }}</n-text>
     </n-flex>
   </Panel>
-  <!-- <Panel position="top-right" :style="{ width: 'auto' }">
+  <Panel position="top-right" :style="{ width: 'auto' }">
         <ctrlpanel />
-    </Panel> -->
+    </Panel>
   <Panel class="nodepanel" position="top-right">
     <nodepanel v-if="!!selectedNodeId" />
   </Panel>
   <AceCodeEditor />
-  <!-- <FlowResults />
-  <Jinja2Render v-if="TaskID" /> -->
+  <vflowManager />
+  <!-- <Jinja2Render v-if="TaskID" /> -->
 </template>
 
 <style scoped>
