@@ -5,7 +5,7 @@ import {
   type NodeMouseEvent,
   type EdgeMouseEvent,
   type Node,
-  type Edge,
+  type GraphEdge,
   type Connection,
   type NodeDragEvent,
 } from '@vue-flow/core'
@@ -128,7 +128,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
   })
 
   onConnect((connection: Connection) => {
-    addEdgeToVFlow(connection as Edge)
+    addEdgeToVFlow(connection as GraphEdge)
   })
 
   instance = {}

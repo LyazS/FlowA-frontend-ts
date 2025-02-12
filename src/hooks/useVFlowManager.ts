@@ -344,7 +344,8 @@ export const useVFlowManager = (): NodeManagementInstance => {
     await nextTick()
     if (flow) {
       for (const node of flow.nodes) {
-        ;(node.data as VFNode).resetState()
+        // ;(node.data as VFNode).resetState()
+        node.data = VFNode(node.data)
       }
       fromObject(flow)
       buildNestedNodeGraph()

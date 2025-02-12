@@ -46,7 +46,8 @@ import { useVFlowRequest } from '@/services/useVFlowRequest'
 import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/services/useVFlowRequest'
 import type { ButtonType } from '@/schemas/naiveui_schemas'
 import { renderIcon } from '@/utils/tools'
-const { createNewWorkflow, getWorkflows, uploadWorkflow } = useVFlowRequest()
+const { createNewWorkflow, getWorkflows, loadWorkflow, uploadWorkflow, returnEditMode } =
+  useVFlowRequest()
 
 const message = useMessage()
 const dialog = useDialog()
@@ -168,6 +169,12 @@ const uploadWF = async ({
     const error = new Error('不支持的文件类型')
     message.error(error.message)
   }
+}
+
+const loadWorkflow_btn = async (wid: string) => {
+  if (WorkflowID.value == wid) return
+  await loadWorkflow(wid)
+  isShowVFlowMgr.value = false
 }
 
 watch(isShowVFlowMgr, async (newVal) => {

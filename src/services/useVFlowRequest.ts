@@ -15,6 +15,8 @@ import {
   AutoSaveMessage,
   Jinja2RenderNodeIDs,
   isEditorMode,
+  WorkflowMode,
+  WorkflowModeType,
 } from '@/hooks/useVFlowAttribute'
 
 interface SSEResponseData {
@@ -46,7 +48,7 @@ interface FAResult {
 }
 
 interface VFlowRequestInstance {
-  // loadWorkflow: (wid: string | null) => Promise<void>
+  loadWorkflow: (wid: string | null) => Promise<void>
   // autoSaveWorkflow: () => void
   createNewWorkflow: (name: string) => Promise<void>
   uploadWorkflow: (name: string, wf_json: any) => Promise<void>
@@ -59,7 +61,7 @@ interface VFlowRequestInstance {
   // getResults: (tid: string) => Promise<FAResult[]>
   // clearTaskID: () => void
   // setTaskID: (tid: string) => void
-  // returnEditorMode: (isEdit: boolean) => Promise<void>
+  returnEditMode: (isEdit: boolean) => Promise<void>
   // deleteWorkflow: (wid: string) => Promise<void>
   // onMountedFunc: () => void
 }
@@ -135,25 +137,42 @@ export const useVFlowRequest = () => {
     },
   )
 
-  // const debouncedAutoSaveWorkflow = debounce(async () => {
-  //   if (!WorkflowID.value) return
-  //   const data = {
-  //     wid: WorkflowID.value,
-  //     location: 'vflow',
-  //     data: toObject(),
-  //   }
-  //   const res = await postData('workflow/update', data)
-  //   if (res.success) {
-  //     AutoSaveMessage.value = `自动保存 ${new Date().toLocaleTimeString()}`
-  //   }
-  // }, 1000)
+  const setWfModeEdit = () => {
+    nodesDraggable.value = true
+    nodesConnectable.value = true
+    WorkflowMode.value = WorkflowModeType.Edit
+  }
+  const setWfModeView = () => {
+    nodesDraggable.value = false
+    nodesConnectable.value = false
+    WorkflowMode.value = WorkflowModeType.View
+  }
+  const setWfModeRun = () => {
+    nodesDraggable.value = false
+    nodesConnectable.value = false
+    WorkflowMode.value = WorkflowModeType.View
+  }
 
-  // const autoSaveWorkflow = () => {
-  //   if (!isEditorMode.value) return
-  //   console.log('try to autoSaveWorkflow')
-  //   debouncedAutoSaveWorkflow()
-  // }
+  const returnEditMode = async (isLoad: boolean = false) => {
+    selectedNodeId.value = null
+    setWfModeEdit()
+    unsubscribe()
+    if (isLoad) {
+      await loadWorkflow(WorkflowID.value)
+    }
+  }
 
+  const setWFIdAndName = (wid: string, name: string) => {
+    WorkflowID.value = wid
+    WorkflowName.value = name
+    localStorage.setItem('curWorkflowID', wid)
+  }
+  const clearWFIdAndName = () => {
+    WorkflowID.value = null
+    WorkflowName.value = null
+    localStorage.removeItem('curWorkflowID')
+  }
+  
   const renameWorkflow = async (wid: string, name: string, callback: any) => {
     const data = {
       wid: wid,
@@ -185,30 +204,26 @@ export const useVFlowRequest = () => {
     WorkflowID.value = res.data as string
     WorkflowName.value = name
     localStorage.setItem('curWorkflowID', WorkflowID.value)
-    await returnEditorMode(false)
+    await returnEditMode(false)
   }
 
   const loadWorkflow = async (wid: string | null) => {
-    clearTaskID()
+    await returnEditMode(false)
 
     if (wid) {
       const res = await postData(`workflow/read`, { wid: wid, locations: ['name', 'vflow'] })
       console.log(`read Workflow ${wid}: `, res)
       if (!res.success) {
-        WorkflowID.value = null
-        WorkflowName.value = null
+        clearWFIdAndName()
         message.error(res.message)
       } else {
         const name = res.data['name']
         const flow = res.data['vflow']
         loadVflow(flow)
-        WorkflowID.value = wid
-        WorkflowName.value = name
-        localStorage.setItem('curWorkflowID', wid)
+        setWFIdAndName(wid, name)
       }
     } else {
-      WorkflowID.value = null
-      WorkflowName.value = null
+      clearWFIdAndName()
     }
   }
 
@@ -250,7 +265,7 @@ export const useVFlowRequest = () => {
           if (data.success) {
             console.log('start subscribe')
             if (data.data.hasOwnProperty('tid')) {
-              setTaskID(data.data['tid'])
+              setTaskID()
               subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
                 tid: data.data['tid'],
                 node_type: 'ALL_TASK_NODE',
@@ -273,33 +288,12 @@ export const useVFlowRequest = () => {
     console.log(`delete Workflow ${wid}: `, res)
     if (res.success) {
       if (WorkflowID.value === wid) {
-        await returnEditorMode(false)
+        await returnEditMode(false)
         WorkflowID.value = null
         WorkflowName.value = null
         localStorage.removeItem('curWorkflowID')
         removeNodes(getNodes.value)
       }
-    }
-  }
-
-  const setTaskID = (tid: string) => {
-    // TaskID.value = tid
-    nodesDraggable.value = false
-    nodesConnectable.value = false
-  }
-
-  const clearTaskID = () => {
-    // TaskID.value = null
-    nodesDraggable.value = true
-    nodesConnectable.value = true
-  }
-
-  const returnEditorMode = async (isLoad: boolean = false) => {
-    selectedNodeId.value = null
-    clearTaskID()
-    unsubscribe()
-    if (isLoad) {
-      await loadWorkflow(WorkflowID.value)
     }
   }
 
@@ -349,10 +343,10 @@ export const useVFlowRequest = () => {
     uploadWorkflow,
     // renameWorkflow,
     getWorkflows,
-    // loadWorkflow,
+    loadWorkflow,
     // getResults,
     // loadResult,
-    // returnEditorMode,
+    returnEditMode,
     // deleteWorkflow,
     // downloadWorkflow,
     // onMountedFunc,

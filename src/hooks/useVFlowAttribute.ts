@@ -24,18 +24,12 @@ export const WorkflowName = ref<string | null>(null)
 const isShowFlowResults_inner = ref(false)
 export const isShowVFlowMgr = computed({
   get: () => {
-    if (!!WorkflowID.value) {
-      return isShowFlowResults_inner.value
-    } else {
-      return true
-    }
+    if (!!WorkflowID.value) return isShowFlowResults_inner.value
+    else return true
   },
   set: (val) => {
-    if (!!WorkflowID.value) {
-      isShowFlowResults_inner.value = val
-    } else {
-      isShowFlowResults_inner.value = true
-    }
+    if (!!WorkflowID.value) isShowFlowResults_inner.value = val
+    else isShowFlowResults_inner.value = true
   },
 })
 export const isShowJinja2Render = ref(false)

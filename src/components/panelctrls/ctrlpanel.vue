@@ -40,28 +40,28 @@ const message = useMessage()
 const dialog = useDialog()
 
 const run_loading = ref<boolean>(false)
-const click2runflow = async (): Promise<void> => {
-  const res = await runflow({
-    before: async () => {
-      run_loading.value = true
-      console.log('before run')
-    },
-    success: (data: { success: boolean }) => {
-      console.log('success run')
-      run_loading.value = false
-      if (data.success) {
-        message.success('已发送运行')
-      } else {
-        message.error(`工作流验证失败，请检查`)
-      }
-    },
-    error: (err: string) => {
-      run_loading.value = false
-      message.error(`运行失败: ${err}`)
-    },
-  } as RunflowParams)
-  console.log(res)
-}
+// const click2runflow = async (): Promise<void> => {
+//   const res = await runflow({
+//     before: async () => {
+//       run_loading.value = true
+//       console.log('before run')
+//     },
+//     success: (data: { success: boolean }) => {
+//       console.log('success run')
+//       run_loading.value = false
+//       if (data.success) {
+//         message.success('已发送运行')
+//       } else {
+//         message.error(`工作流验证失败，请检查`)
+//       }
+//     },
+//     error: (err: string) => {
+//       run_loading.value = false
+//       message.error(`运行失败: ${err}`)
+//     },
+//   } as RunflowParams)
+//   console.log(res)
+// }
 </script>
 
 <template>
