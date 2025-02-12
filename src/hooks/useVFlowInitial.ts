@@ -1,5 +1,5 @@
 import { ref, reactive, markRaw, onBeforeMount, type Ref, type Component } from 'vue'
-import VFNode from '@/components/nodes/VFNodeClass'
+import { VFNode } from '@/components/nodes/VFNodeClass'
 
 interface VFlowInitInstance {
   AllVFNodeTypes: Record<string, Component>

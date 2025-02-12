@@ -17,7 +17,7 @@ import {
   type NestedVFNodeData,
   type AttachedVFNodeData,
 } from '@/components/nodes/VFNodeInterface'
-import type VFNode from '@/components/nodes/VFNodeClass'
+import { type VFNode, createVFNodeFromData } from '@/components/nodes/VFNodeClass'
 
 export interface NodeAddInfo {
   type: 'client' | 'attached'
@@ -344,8 +344,8 @@ export const useVFlowManager = (): NodeManagementInstance => {
     await nextTick()
     if (flow) {
       for (const node of flow.nodes) {
-        // ;(node.data as VFNode).resetState()
-        node.data = VFNode(node.data)
+        node.data = createVFNodeFromData(node.data)
+        node.data.resetState()
       }
       fromObject(flow)
       buildNestedNodeGraph()

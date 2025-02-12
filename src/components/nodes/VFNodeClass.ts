@@ -190,7 +190,7 @@ class VFNode implements BaseVFNodeData {
     this.payloads.order.push(id)
     return id
   }
-  
+
   rmPayload(pid: string): this {
     const payload = this.payloads.byId[pid]
     if (!payload) return this
@@ -282,5 +282,32 @@ class VFNode implements BaseVFNodeData {
     return this
   }
 }
+export function createVFNodeFromData(data: VFNodeData): VFNode {
+  // 使用基础属性创建实例
+  const node = new VFNode(data.ntype, data.vtype, data.label)
 
-export default VFNode
+  // 填充其他必选属性
+  node.flag = data.flag
+  node.placeholderlabel = data.placeholderlabel
+  node.size = data.size
+  node.connections = data.connections
+  node.payloads = data.payloads
+  node.results = data.results
+  node.state = data.state
+  node.config = data.config
+
+  // 处理附属节点特性
+  if ('attaching' in data) {
+    node.attaching = data.attaching
+  }
+
+  // 处理嵌套节点特性
+  if ('nesting' in data) {
+    const nestedData = data as NestedVFNodeData
+    node.min_size = nestedData.min_size
+    node.nesting = nestedData.nesting
+  }
+
+  return node
+}
+export { VFNode }

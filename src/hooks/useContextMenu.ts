@@ -5,7 +5,7 @@ import { type NodeAddInfo, useVFlowManager } from './useVFlowManager'
 import { useVFlowInitial } from './useVFlowInitial'
 import { useVFlowRequest } from '@/services/useVFlowRequest'
 import { VFNodeFlag } from '@/components/nodes/VFNodeInterface'
-import VFNode from '@/components/nodes/VFNodeClass'
+import { VFNode } from '@/components/nodes/VFNodeClass'
 // 定义菜单项类型
 interface MenuItem {
   label: string
