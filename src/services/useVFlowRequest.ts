@@ -2,7 +2,7 @@ import { ref, watch, inject, computed, onMounted, onUnmounted, nextTick } from '
 import { type EventSourceMessage } from '@microsoft/fetch-event-source'
 import { useVueFlow, type FlowExportObject } from '@vue-flow/core'
 import { getUuid, setValueByPath, downloadJson } from '@/utils/tools'
-import { postData, getData } from '@/utils/requestMethod'
+import { postData, getData, type RequestCallbacks } from '@/utils/requestMethod'
 import { useVFlowManager } from '@/hooks/useVFlowManager'
 import { SubscribeSSE } from '@/utils/SSEMethod'
 import { type NodeWithVFData } from '@/schemas/schemas'
@@ -52,8 +52,8 @@ interface VFlowRequestInstance {
   // autoSaveWorkflow: () => void
   createNewWorkflow: (name: string) => Promise<void>
   uploadWorkflow: (name: string, wf_json: any) => Promise<void>
-  // downloadWorkflow: (wid: string) => Promise<void>
-  // renameWorkflow: (wid: string, name: string, callback: any) => Promise<void>
+  downloadWorkflow: (wid: string) => Promise<void>
+  renameWorkflow: (wid: string, name: string, callback: RequestCallbacks) => Promise<void>
   // runflow: (callback: any) => Promise<void>
   // stopflow: () => Promise<void>
   getWorkflows: () => Promise<FAWorkflowInfo[]>
@@ -62,7 +62,7 @@ interface VFlowRequestInstance {
   // clearTaskID: () => void
   // setTaskID: (tid: string) => void
   returnEditMode: (isEdit: boolean) => Promise<void>
-  // deleteWorkflow: (wid: string) => Promise<void>
+  deleteWorkflow: (wid: string) => Promise<void>
   // onMountedFunc: () => void
 }
 let instance: VFlowRequestInstance | null = null
@@ -172,8 +172,8 @@ export const useVFlowRequest = () => {
     WorkflowName.value = null
     localStorage.removeItem('curWorkflowID')
   }
-  
-  const renameWorkflow = async (wid: string, name: string, callback: any) => {
+
+  const renameWorkflow = async (wid: string, name: string, callback: RequestCallbacks) => {
     const data = {
       wid: wid,
       location: 'name',
@@ -246,8 +246,8 @@ export const useVFlowRequest = () => {
     if (!res.success) {
       message.error(res.message)
     } else {
-      const wfname = res.data[0]
-      const flow = JSON.stringify({ version: '0.0.1', vflow: res.data[1] })
+      const wfname = res.data['name']
+      const flow = JSON.stringify({ version: '0.0.1', vflow: res.data['vflow'] })
       const wfname_safe = wfname.replace(/[\\/:*?"<>|]/g, '_')
       downloadJson(flow, `${wfname_safe}.json`)
     }
@@ -289,9 +289,7 @@ export const useVFlowRequest = () => {
     if (res.success) {
       if (WorkflowID.value === wid) {
         await returnEditMode(false)
-        WorkflowID.value = null
-        WorkflowName.value = null
-        localStorage.removeItem('curWorkflowID')
+        clearWFIdAndName()
         removeNodes(getNodes.value)
       }
     }
@@ -341,14 +339,14 @@ export const useVFlowRequest = () => {
     // autoSaveWorkflow,
     createNewWorkflow,
     uploadWorkflow,
-    // renameWorkflow,
+    renameWorkflow,
     getWorkflows,
     loadWorkflow,
     // getResults,
     // loadResult,
     returnEditMode,
-    // deleteWorkflow,
-    // downloadWorkflow,
+    deleteWorkflow,
+    downloadWorkflow,
     // onMountedFunc,
   }
   return instance

@@ -46,8 +46,16 @@ import { useVFlowRequest } from '@/services/useVFlowRequest'
 import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/services/useVFlowRequest'
 import type { ButtonType } from '@/schemas/naiveui_schemas'
 import { renderIcon } from '@/utils/tools'
-const { createNewWorkflow, getWorkflows, loadWorkflow, uploadWorkflow, returnEditMode } =
-  useVFlowRequest()
+const {
+  createNewWorkflow,
+  getWorkflows,
+  loadWorkflow,
+  renameWorkflow,
+  uploadWorkflow,
+  returnEditMode,
+  downloadWorkflow,
+  deleteWorkflow,
+} = useVFlowRequest()
 
 const message = useMessage()
 const dialog = useDialog()
@@ -92,7 +100,7 @@ const createNewWorkflow_btn = async () => {
 
 const updateWorkflows = async () => {
   const res = await getWorkflows()
-  console.log(res)
+  // console.debug(res)
   workflows.value = []
   for (const item of res) {
     let wf_type: ButtonType = 'default'
@@ -105,6 +113,59 @@ const updateWorkflows = async () => {
     })
   }
 }
+
+const remaneWorkflow_btn = async (wid: string, wname: string) => {
+  const new_name = ref(wname)
+  dialog.warning({
+    title: '重命名工作流',
+    content: () =>
+      h(
+        NInput,
+        {
+          value: new_name.value,
+          onUpdateValue: (value) => {
+            new_name.value = value
+          },
+        },
+        {},
+      ),
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      if (new_name.value.trim() === '') {
+        message.error('名称不能为空')
+        return
+      }
+      await renameWorkflow(wid, new_name.value, {
+        success: async (data) => {
+          message.success(`重命名为【${new_name.value}】`)
+        },
+        error: async (err) => {
+          message.error(`重命名【${new_name.value}】失败: ${err}`)
+        },
+      })
+      await updateWorkflows()
+    },
+  })
+}
+
+const downloadWorkflow_btn = async (wid: string) => {
+  await downloadWorkflow(wid)
+}
+
+const deleteWorkflow_btn = async (wid: string, wname: string) => {
+  dialog.warning({
+    title: '即将删除工作流',
+    content: `【${wname}】`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      await deleteWorkflow(wid)
+      await updateWorkflows()
+    },
+  })
+}
+
 const wfOperations = [
   {
     label: '重命名',
@@ -123,13 +184,13 @@ const wfOperations = [
   },
 ]
 const handleSelectWFOperator = (key: string, wid: string, wname: string) => {
-  // if (key === 'rename') {
-  //   remaneWorkflow_btn(wid, wname)
-  // } else if (key === 'exportWF') {
-  //   downloadWorkflow_btn(wid)
-  // } else if (key === 'deleteWF') {
-  //   deleteWorkflow_btn(wid, wname)
-  // }
+  if (key === 'rename') {
+    remaneWorkflow_btn(wid, wname)
+  } else if (key === 'exportWF') {
+    downloadWorkflow_btn(wid)
+  } else if (key === 'deleteWF') {
+    deleteWorkflow_btn(wid, wname)
+  }
 }
 
 const uploadWF = async ({
@@ -259,6 +320,8 @@ onMounted(async () => {
         </n-grid-item>
         <n-grid-item :span="6">
           <n-text>{{ release_titlename }}</n-text>
+          <n-button text>保存当前版本</n-button>
+          <n-divider />
           <n-skeleton v-if="!WorkflowID" text :repeat="5" :sharp="false" size="medium" />
           <n-scrollbar v-else style="max-height: 50vh">
             <n-flex vertical :style="{ width: '100%' }">
