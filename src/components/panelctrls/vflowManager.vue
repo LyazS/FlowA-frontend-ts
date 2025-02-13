@@ -3,6 +3,10 @@ import { type Ref, ref, onMounted, reactive, h, inject, computed, watch } from '
 import {
   useDialog,
   NText,
+  NH3,
+  NH4,
+  NH5,
+  NH6,
   NButton,
   NIcon,
   NButtonGroup,
@@ -30,6 +34,8 @@ import {
   CloudUploadOutline,
   CloudDownloadOutline,
   CaretDown,
+  SaveOutline,
+  EllipsisVertical,
 } from '@vicons/ionicons5'
 import {
   type WorkflowModeType,
@@ -45,7 +51,8 @@ import {
 import { useVFlowRequest } from '@/services/useVFlowRequest'
 import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/services/useVFlowRequest'
 import type { ButtonType } from '@/schemas/naiveui_schemas'
-import { renderIcon } from '@/utils/tools'
+import { renderIcon, formatDateString } from '@/utils/tools'
+import type { pad } from 'lodash'
 const {
   createNewWorkflow,
   getWorkflows,
@@ -55,19 +62,18 @@ const {
   returnEditMode,
   downloadWorkflow,
   deleteWorkflow,
+  loadReleaseWorkflow,
+  recordReleaseWorkflow,
+  getReleaseWorkflows,
+  downloadReleaseWorkflow,
+  deleteReleaseWorkflow,
+  editReleaseWorkflow,
 } = useVFlowRequest()
 
 const message = useMessage()
 const dialog = useDialog()
 const release_wfs = ref<FAReleaseWorkflowInfo[]>([])
 const workflows = ref<(FAWorkflowInfo & { type: ButtonType })[]>([])
-
-const release_titlename = computed(() => {
-  if (!WorkflowID.value) {
-    return '选择工作流以查看版本记录'
-  }
-  return `【${WorkflowName.value}】的版本记录`
-})
 
 const createNewWorkflow_btn = async () => {
   const new_name = ref('')
@@ -114,9 +120,15 @@ const updateWorkflows = async () => {
   }
 }
 
+const updateReleaseWorkflows = async () => {
+  if (!WorkflowID.value) return
+  const res = await getReleaseWorkflows(WorkflowID.value)
+  release_wfs.value = res
+}
+
 const remaneWorkflow_btn = async (wid: string, wname: string) => {
   const new_name = ref(wname)
-  dialog.warning({
+  dialog.info({
     title: '重命名工作流',
     content: () =>
       h(
@@ -238,16 +250,166 @@ const loadWorkflow_btn = async (wid: string) => {
   isShowVFlowMgr.value = false
 }
 
+const loadReleaseWorkflow_btn = async (rwid: string, rname: string) => {
+  await loadReleaseWorkflow(WorkflowID.value, rwid)
+  isShowVFlowMgr.value = false
+  message.success(`【${rname}】版本加载成功`)
+}
+
+const recordReleaseWF_btn = async () => {
+  const record_name = ref('')
+  const record_desc = ref('')
+  dialog.warning({
+    title: '记录当前版本工作流',
+    content: () =>
+      h(
+        NFlex,
+        {
+          vertical: true,
+          size: 'medium', // 可调整间距大小或使用[水平间距, 垂直间距]格式
+        },
+        {
+          default: () => [
+            h(NInput, {
+              value: record_name.value,
+              onUpdateValue: (value) => {
+                record_name.value = value
+              },
+              placeholder: '版本名称',
+            }),
+            h(NInput, {
+              type: 'textarea',
+              autosize: { minRows: 3, maxRows: 5 },
+              value: record_desc.value,
+              onUpdateValue: (value) => {
+                record_desc.value = value
+              },
+              placeholder: '版本描述',
+            }),
+          ],
+        },
+      ),
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      if (record_name.value.trim() === '') {
+        message.error('名称不能为空')
+        return
+      }
+      await recordReleaseWorkflow(record_name.value, record_desc.value)
+      await updateReleaseWorkflows()
+    },
+  })
+}
+
+const rwfOperations = [
+  {
+    label: '编辑',
+    key: 'edit',
+    icon: renderIcon(Pencil),
+  },
+  {
+    label: '导出',
+    key: 'export',
+    icon: renderIcon(CloudDownloadOutline),
+  },
+  {
+    label: '删除',
+    key: 'delete',
+    icon: renderIcon(Close),
+  },
+]
+
+const editReleaseWorkflow_btn = async (
+  wid: string,
+  rwid: string,
+  rwname: string,
+  rwdesc: string,
+) => {
+  const edit_name = ref(rwname)
+  const edit_desc = ref(rwdesc)
+  dialog.info({
+    title: '编辑版本记录',
+    content: () =>
+      h(
+        NFlex,
+        {
+          vertical: true,
+          size: 'medium', // 可调整间距大小或使用[水平间距, 垂直间距]格式
+        },
+        {
+          default: () => [
+            h(NInput, {
+              value: edit_name.value,
+              onUpdateValue: (value) => {
+                edit_name.value = value
+              },
+              placeholder: '版本名称',
+            }),
+            h(NInput, {
+              type: 'textarea',
+              autosize: { minRows: 3, maxRows: 5 },
+              value: edit_desc.value,
+              onUpdateValue: (value) => {
+                edit_desc.value = value
+              },
+              placeholder: '版本描述',
+            }),
+          ],
+        },
+      ),
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      if (edit_name.value.trim() === '') {
+        message.error('名称不能为空')
+        return
+      }
+      if (!WorkflowID.value) return
+      await editReleaseWorkflow(WorkflowID.value, rwid, edit_name.value, edit_desc.value)
+      await updateReleaseWorkflows()
+    },
+  })
+}
+
+const deleteReleaseWorkflow_btn = async (wid: string, rwid: string, rwname: string) => {
+  dialog.warning({
+    title: '即将删除版本记录',
+    content: `【${rwname}】`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      await deleteReleaseWorkflow(wid, rwid)
+      await updateWorkflows()
+    },
+  })
+}
+
+const downloadReleaseWorkflow_btn = async (wid: string, rwid: string) => {
+  await downloadReleaseWorkflow(wid, rwid)
+}
+
+const handleSelectRWFOperator = (key: string, item: FAReleaseWorkflowInfo) => {
+  if (!WorkflowID.value) return
+  if (key === 'edit') {
+    editReleaseWorkflow_btn(WorkflowID.value, item.rwid, item.name, item.description)
+  } else if (key === 'export') {
+    downloadReleaseWorkflow_btn(WorkflowID.value, item.rwid)
+  } else if (key === 'delete') {
+    deleteReleaseWorkflow_btn(WorkflowID.value, item.rwid, item.name)
+  }
+}
+
 watch(isShowVFlowMgr, async (newVal) => {
   if (newVal) {
     await updateWorkflows()
-    // await updateResults()
+    await updateReleaseWorkflows()
   }
 })
 
 onMounted(async () => {
   await updateWorkflows()
-  // await updateResults()
+  await updateReleaseWorkflows()
 })
 </script>
 <template>
@@ -258,9 +420,9 @@ onMounted(async () => {
       @close="isShowVFlowMgr = false"
       :style="{ width: '80%', maxWidth: '1000px' }"
     >
-      <n-grid x-gap="0" :cols="15">
-        <n-grid-item :span="8">
-          <n-flex>
+      <n-grid x-gap="0" :cols="31">
+        <n-grid-item :span="16">
+          <n-flex vertical>
             <n-flex :style="{ flexWrap: 'nowrap', width: '100%' }">
               <n-button type="info" text @click="createNewWorkflow_btn">
                 <template #icon>
@@ -283,13 +445,19 @@ onMounted(async () => {
                 </n-flex>
               </n-upload>
             </n-flex>
-            <n-scrollbar style="max-height: 50vh">
+            <n-scrollbar style="max-height: 50vh; padding-right: 5px">
               <n-flex vertical :style="{ width: '100%' }">
                 <template v-for="(item, idx) in workflows" :key="'workflow_' + idx">
-                  <n-flex class="flexctitem" :style="{ width: '100%' }" :wrap="false">
+                  <n-flex
+                    class="flexctitem"
+                    :style="{ paddingRight: '12px' }"
+                    :wrap="false"
+                    :size="4"
+                  >
                     <n-button
                       @click="loadWorkflow_btn(item.wid)"
                       secondary
+                      size="large"
                       :type="item.type"
                       :style="{ flex: '1' }"
                     >
@@ -302,7 +470,7 @@ onMounted(async () => {
                       <n-button size="large" text>
                         <template #icon>
                           <n-icon>
-                            <CaretDown />
+                            <EllipsisVertical />
                           </n-icon>
                         </template>
                       </n-button>
@@ -318,30 +486,81 @@ onMounted(async () => {
             <n-divider vertical :style="{ height: '100%' }" />
           </n-flex>
         </n-grid-item>
-        <n-grid-item :span="6">
-          <n-text>{{ release_titlename }}</n-text>
-          <n-button text>保存当前版本</n-button>
-          <n-divider />
-          <n-skeleton v-if="!WorkflowID" text :repeat="5" :sharp="false" size="medium" />
-          <n-scrollbar v-else style="max-height: 50vh">
-            <n-flex vertical :style="{ width: '100%' }">
-              <n-button
-                v-for="(item, idx) in release_wfs"
-                :key="'result_' + idx"
-                @click="loadResult_btn(item.tid)"
-                secondary
-                :type="item.type"
-                style="text-align: left"
+        <n-grid-item :span="14">
+          <template v-if="WorkflowID">
+            <n-flex vertical>
+              <n-flex
+                justify="space-between"
+                align="center"
+                :style="{ height: '100%' }"
+                :wrap="false"
               >
-                <template #icon>
-                  <n-icon size="10" :color="item.status">
-                    <Ellipse />
-                  </n-icon>
-                </template>
-                {{ item.label }}
-              </n-button>
+                <n-text>共 {{ release_wfs.length }} 个记录</n-text>
+                <n-button type="info" text @click="recordReleaseWF_btn">
+                  <template #icon>
+                    <n-icon>
+                      <SaveOutline />
+                    </n-icon>
+                  </template>
+                  记录当前版本
+                </n-button>
+              </n-flex>
+              <n-scrollbar style="max-height: 50vh">
+                <n-flex vertical :style="{ width: '100%' }">
+                  <template v-for="(item, idx) in release_wfs" :key="'result_' + idx">
+                    <n-flex
+                      class="flexctitem"
+                      :style="{ paddingRight: '12px' }"
+                      :size="4"
+                      :wrap="false"
+                    >
+                      <n-button
+                        @click="loadReleaseWorkflow_btn(item.rwid, item.name)"
+                        tertiary
+                        :style="{
+                          display: 'block',
+                          justifyContent: 'flex-start',
+                          height: 'auto',
+                          // width: '100%',
+                          flex: '1',
+                          padding: '6px',
+                        }"
+                      >
+                        <n-flex vertical :style="{ width: '100%' }">
+                          <n-text style="text-align: left" type="info">{{ item.name }} </n-text>
+                          <n-ellipsis style="max-width: 240px; text-align: left">
+                            <n-text style="text-align: left">{{ item.description }}</n-text>
+                          </n-ellipsis>
+                          <n-flex justify="space-between" align="center">
+                            <n-text style="text-align: left" italic depth="3">
+                              {{ formatDateString(item.releaseTime) }}
+                            </n-text>
+                          </n-flex>
+                        </n-flex>
+                      </n-button>
+                      <n-dropdown
+                        :options="rwfOperations"
+                        @select="(value) => handleSelectRWFOperator(value, item)"
+                        :style="{ padding: '0px' }"
+                      >
+                        <n-button size="large" text>
+                          <template #icon>
+                            <n-icon>
+                              <EllipsisVertical />
+                            </n-icon>
+                          </template>
+                        </n-button>
+                      </n-dropdown>
+                    </n-flex>
+                  </template>
+                </n-flex>
+              </n-scrollbar>
             </n-flex>
-          </n-scrollbar>
+          </template>
+          <template v-else>
+            <n-text>选择工作流以查看版本记录</n-text>
+            <n-skeleton v-if="!WorkflowID" text :repeat="5" :sharp="false" size="medium" />
+          </template>
         </n-grid-item>
       </n-grid>
     </n-card>

@@ -4,9 +4,9 @@ import { useVueFlow, type FlowExportObject } from '@vue-flow/core'
 import { getUuid, setValueByPath, downloadJson } from '@/utils/tools'
 import { postData, getData, type RequestCallbacks } from '@/utils/requestMethod'
 import { useVFlowManager } from '@/hooks/useVFlowManager'
+import { useVFlowSaver } from '@/services/useVFlowSaver'
 import { SubscribeSSE } from '@/utils/SSEMethod'
 import { type NodeWithVFData } from '@/schemas/schemas'
-import { debounce } from 'lodash'
 import { useMessage } from 'naive-ui'
 import { selectedNodeId } from '@/hooks/useVFlowAttribute'
 import {
@@ -36,8 +36,9 @@ export interface FAWorkflowInfo {
 }
 export interface FAReleaseWorkflowInfo {
   rwid: string
-  label: string
-  desc: string
+  name: string
+  description: string
+  releaseTime: string
 }
 
 interface FAResult {
@@ -49,11 +50,21 @@ interface FAResult {
 
 interface VFlowRequestInstance {
   loadWorkflow: (wid: string | null) => Promise<void>
-  // autoSaveWorkflow: () => void
+  loadReleaseWorkflow: (wid: string | null, rwid: string | null) => Promise<void>
   createNewWorkflow: (name: string) => Promise<void>
   uploadWorkflow: (name: string, wf_json: any) => Promise<void>
   downloadWorkflow: (wid: string) => Promise<void>
+  downloadReleaseWorkflow: (wid: string, rwid: string) => Promise<void>
   renameWorkflow: (wid: string, name: string, callback: RequestCallbacks) => Promise<void>
+  recordReleaseWorkflow: (name: string, description: string) => Promise<void>
+  editReleaseWorkflow: (
+    wid: string,
+    rwid: string,
+    name: string,
+    description: string,
+    callback?: RequestCallbacks,
+  ) => Promise<void>
+  getReleaseWorkflows: (wid: string) => Promise<FAReleaseWorkflowInfo[]>
   // runflow: (callback: any) => Promise<void>
   // stopflow: () => Promise<void>
   getWorkflows: () => Promise<FAWorkflowInfo[]>
@@ -63,6 +74,7 @@ interface VFlowRequestInstance {
   // setTaskID: (tid: string) => void
   returnEditMode: (isEdit: boolean) => Promise<void>
   deleteWorkflow: (wid: string) => Promise<void>
+  deleteReleaseWorkflow: (wid: string, rwid: string) => Promise<void>
   // onMountedFunc: () => void
 }
 let instance: VFlowRequestInstance | null = null
@@ -82,6 +94,8 @@ export const useVFlowRequest = () => {
   } = useVueFlow()
 
   const { loadVflow } = useVFlowManager()
+  const { autoSaveWorkflow } = useVFlowSaver()
+
   const message = useMessage()
 
   const updateNodeFromSSE = (data: SSEResponseData) => {
@@ -176,13 +190,29 @@ export const useVFlowRequest = () => {
   const renameWorkflow = async (wid: string, name: string, callback: RequestCallbacks) => {
     const data = {
       wid: wid,
-      location: 'name',
-      data: name,
+      items: [{ location: 'wfname', data: name }],
     }
     const res = await postData('workflow/update', data, callback)
     if (res.success && WorkflowID.value === wid) {
       WorkflowName.value = name
     }
+  }
+
+  const editReleaseWorkflow = async (
+    wid: string,
+    rwid: string,
+    name: string,
+    description: string,
+    callback?: RequestCallbacks,
+  ) => {
+    const data = {
+      wid: wid,
+      items: [
+        { rwid, location: 'rwfname', data: name },
+        { rwid, location: 'rwfdescription', data: description },
+      ],
+    }
+    const res = await postData('workflow/update', data, callback)
   }
 
   const getWorkflows = async (): Promise<FAWorkflowInfo[]> => {
@@ -197,7 +227,7 @@ export const useVFlowRequest = () => {
   const createNewWorkflow = async (name: string) => {
     removeNodes(getNodes.value)
     await nextTick()
-    const res = await postData(`workflow/create`, { name: name })
+    const res = await postData(`workflow/create`, { type: 'new', name: name })
     console.log(`create Workflow: `, res)
     if (!res.success) return
 
@@ -208,28 +238,60 @@ export const useVFlowRequest = () => {
   }
 
   const loadWorkflow = async (wid: string | null) => {
-    await returnEditMode(false)
-
-    if (wid) {
-      const res = await postData(`workflow/read`, { wid: wid, locations: ['name', 'vflow'] })
-      console.log(`read Workflow ${wid}: `, res)
+    if (!!wid) {
+      const res = await postData(`workflow/read`, { wid, locations: ['wfname', 'vflow'] })
+      console.log(`read Workflow: `, res)
       if (!res.success) {
-        clearWFIdAndName()
         message.error(res.message)
       } else {
-        const name = res.data['name']
+        await returnEditMode(false)
+        const name = res.data['wfname']
         const flow = res.data['vflow']
         loadVflow(flow)
         setWFIdAndName(wid, name)
       }
+    }
+  }
+
+  const loadReleaseWorkflow = async (wid: string | null, rwid: string | null) => {
+    if (!!wid && !!rwid) {
+      const res = await postData(`workflow/read`, { wid, rwid, locations: ['wfname', 'release'] })
+      console.log(`read Workflow: `, res)
+      if (!res.success) {
+        message.error(res.message)
+      } else {
+        await returnEditMode(false)
+        const name = res.data['wfname']
+        const flow = res.data['release']
+        loadVflow(flow)
+        setWFIdAndName(wid, name)
+        autoSaveWorkflow()
+      }
+    }
+  }
+
+  const getReleaseWorkflows = async (wid: string): Promise<FAReleaseWorkflowInfo[]> => {
+    const res = await postData(`workflow/read`, { wid, locations: ['wfname', 'allReleases'] })
+    if (!res.success) {
+      message.error(res.message)
+      return []
     } else {
-      clearWFIdAndName()
+      const releases: FAReleaseWorkflowInfo[] = []
+      for (const release of res.data['allReleases']) {
+        releases.push({
+          rwid: release['rwid'],
+          name: release['name'],
+          description: release['description'],
+          releaseTime: release['releaseTime'],
+        })
+      }
+      return releases
     }
   }
 
   const uploadWorkflow = async (name: string, wf_json: any) => {
     const vflow = wf_json.vflow
-    const res = await postData(`workflow/create`, { name, vflow })
+    const res = await postData(`workflow/create`, { type: 'upload', name, vflow })
     if (!res.success) {
       message.error(res.message)
       return
@@ -240,16 +302,45 @@ export const useVFlowRequest = () => {
     }
   }
 
+  const recordReleaseWorkflow = async (name: string, description: string) => {
+    const vflow = toObject()
+    const res = await postData(`workflow/create`, {
+      type: 'release',
+      wid: WorkflowID.value,
+      name,
+      description,
+      vflow,
+    })
+    if (!res.success) {
+      message.error(res.message)
+    } else {
+      message.success(`记录工作流【${name}】成功`)
+    }
+  }
+
   const downloadWorkflow = async (wid: string) => {
-    const res = await postData(`workflow/read`, { wid: wid, locations: ['name', 'vflow'] })
+    const res = await postData(`workflow/read`, { wid: wid, locations: ['wfname', 'vflow'] })
     console.log(`Download Workflow ${wid}: `, res)
     if (!res.success) {
       message.error(res.message)
     } else {
-      const wfname = res.data['name']
+      const wfname = res.data['wfname']
       const flow = JSON.stringify({ version: '0.0.1', vflow: res.data['vflow'] })
       const wfname_safe = wfname.replace(/[\\/:*?"<>|]/g, '_')
       downloadJson(flow, `${wfname_safe}.json`)
+    }
+  }
+
+  const downloadReleaseWorkflow = async (wid: string, rwid: string) => {
+    const res = await postData(`workflow/read`, { wid, rwid, locations: ['wfname', 'release'] })
+    console.log(`Download Workflow ${wid}: `, res)
+    if (!res.success) {
+      message.error(res.message)
+    } else {
+      const rwfname = res.data['wfname']
+      const rvflow = JSON.stringify({ version: '0.0.1', vflow: res.data['release'] })
+      const rwfname_safe = rwfname.replace(/[\\/:*?"<>|]/g, '_')
+      downloadJson(rvflow, `${rwfname_safe}.json`)
     }
   }
 
@@ -294,6 +385,12 @@ export const useVFlowRequest = () => {
       }
     }
   }
+  const deleteReleaseWorkflow = async (wid: string, rwid: string) => {
+    const res = await postData(`workflow/delete`, { wid, rwid })
+    console.log(`delete Workflow ${wid}: `, res)
+    if (res.success) {
+    }
+  }
 
   const getResults = async (): Promise<FAResult[]> => {
     if (!WorkflowID.value) return []
@@ -336,17 +433,22 @@ export const useVFlowRequest = () => {
 
   instance = {
     // runflow,
-    // autoSaveWorkflow,
     createNewWorkflow,
     uploadWorkflow,
     renameWorkflow,
     getWorkflows,
     loadWorkflow,
+    loadReleaseWorkflow,
+    recordReleaseWorkflow,
+    getReleaseWorkflows,
+    editReleaseWorkflow,
     // getResults,
     // loadResult,
     returnEditMode,
     deleteWorkflow,
+    deleteReleaseWorkflow,
     downloadWorkflow,
+    downloadReleaseWorkflow,
     // onMountedFunc,
   }
   return instance

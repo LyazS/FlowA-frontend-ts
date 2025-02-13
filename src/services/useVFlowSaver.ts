@@ -18,13 +18,12 @@ let instance: VFlowSaverInstance | null = null
 export const useVFlowSaver = () => {
   if (instance) return instance
   const { toObject } = useVueFlow()
-  
+
   const debouncedAutoSaveWorkflow = debounce(async () => {
     if (!WorkflowID.value) return
     const data = {
       wid: WorkflowID.value,
-      location: 'vflow',
-      data: toObject(),
+      items: [{ location: 'vflow', data: toObject() }],
     }
     const res = await postData('workflow/update', data)
     if (res.success) {

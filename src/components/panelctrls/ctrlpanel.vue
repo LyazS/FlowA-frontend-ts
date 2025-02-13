@@ -75,9 +75,9 @@ const run_loading = ref<boolean>(false)
       @click="isShowVFlowMgr = true"
     >
       <n-ellipsis v-if="WorkflowName" style="max-width: 240px">
-        {{ WorkflowName }}
+        - {{ WorkflowName }} -
       </n-ellipsis>
-      <n-ellipsis v-else style="max-width: 240px"> 工作流管理器 </n-ellipsis>
+      <n-ellipsis v-else style="max-width: 240px"> - 工作流管理器 - </n-ellipsis>
     </n-button>
     <!-- <n-button
       v-if="TaskID"
