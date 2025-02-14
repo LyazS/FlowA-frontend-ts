@@ -1,5 +1,5 @@
 import { type GraphNode } from '@vue-flow/core'
-import type VFNode from '@/components/nodes/VFNodeClass'
+import { type VFNode } from '@/components/nodes/VFNodeClass'
 
 export type NodeWithVFData = Omit<GraphNode, 'data'> & { data: VFNode }
 
@@ -19,4 +19,4 @@ export interface InputNode {
   srcohid: string
 }
 
-// export interface 
+// export interface

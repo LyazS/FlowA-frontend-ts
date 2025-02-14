@@ -147,7 +147,7 @@ import {
   VFNodeAttachingPos,
   VFNodeAttachingType,
 } from '@/components/nodes/VFNodeInterface'
-import type VFNode from '../VFNodeClass'
+import { type VFNode } from '../VFNodeClass'
 
 interface HandleData {
   key: string
@@ -294,7 +294,7 @@ onMounted(() => {
           if (hiddenText.value && newLabel !== '') {
             const node_wd = hiddenText.value.offsetWidth + label_gap * 2
             thisnode.style = {
-             ...thisnode.style,
+              ...thisnode.style,
               width: `${node_wd}px`,
             }
             thisnode.data.size.width = node_wd

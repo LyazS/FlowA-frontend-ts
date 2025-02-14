@@ -49,14 +49,20 @@ interface FAResult {
 }
 
 interface VFlowRequestInstance {
-  loadWorkflow: (wid: string | null) => Promise<void>
-  loadReleaseWorkflow: (wid: string | null, rwid: string | null) => Promise<void>
+  getWorkflows: () => Promise<FAWorkflowInfo[]>
   createNewWorkflow: (name: string) => Promise<void>
-  uploadWorkflow: (name: string, wf_json: any) => Promise<void>
-  downloadWorkflow: (wid: string) => Promise<void>
-  downloadReleaseWorkflow: (wid: string, rwid: string) => Promise<void>
   renameWorkflow: (wid: string, name: string, callback: RequestCallbacks) => Promise<void>
+  uploadWorkflow: (name: string, wf_json: any) => Promise<void>
+  loadWorkflow: (wid: string | null) => Promise<void>
+  downloadWorkflow: (wid: string) => Promise<void>
+  deleteWorkflow: (wid: string, wname: string) => Promise<void>
+
+  getReleaseWorkflows: (wid: string) => Promise<FAReleaseWorkflowInfo[]>
+  loadReleaseWorkflow: (wid: string | null, rwid: string | null) => Promise<void>
+  viewReleaseWorkflow: (wid: string | null, rwid: string | null) => Promise<void>
+  downloadReleaseWorkflow: (wid: string, rwid: string) => Promise<void>
   recordReleaseWorkflow: (name: string, description: string) => Promise<void>
+  deleteReleaseWorkflow: (wid: string, rwid: string, rwname: string) => Promise<void>
   editReleaseWorkflow: (
     wid: string,
     rwid: string,
@@ -64,21 +70,11 @@ interface VFlowRequestInstance {
     description: string,
     callback?: RequestCallbacks,
   ) => Promise<void>
-  getReleaseWorkflows: (wid: string) => Promise<FAReleaseWorkflowInfo[]>
-  // runflow: (callback: any) => Promise<void>
-  // stopflow: () => Promise<void>
-  getWorkflows: () => Promise<FAWorkflowInfo[]>
-  // loadResult: (tid: string) => Promise<void>
-  // getResults: (tid: string) => Promise<FAResult[]>
-  // clearTaskID: () => void
-  // setTaskID: (tid: string) => void
+
   returnEditMode: (isEdit: boolean) => Promise<void>
-  deleteWorkflow: (wid: string) => Promise<void>
-  deleteReleaseWorkflow: (wid: string, rwid: string) => Promise<void>
-  // onMountedFunc: () => void
+  onMountedFunc: () => Promise<void>
 }
 let instance: VFlowRequestInstance | null = null
-// let instance: any = null
 
 export const useVFlowRequest = () => {
   if (instance) return instance
@@ -152,18 +148,18 @@ export const useVFlowRequest = () => {
   )
 
   const setWfModeEdit = () => {
-    nodesDraggable.value = true
     nodesConnectable.value = true
+    nodesDraggable.value = true
     WorkflowMode.value = WorkflowModeType.Edit
   }
   const setWfModeView = () => {
-    nodesDraggable.value = false
     nodesConnectable.value = false
+    nodesDraggable.value = false
     WorkflowMode.value = WorkflowModeType.View
   }
   const setWfModeRun = () => {
-    nodesDraggable.value = false
     nodesConnectable.value = false
+    nodesDraggable.value = false
     WorkflowMode.value = WorkflowModeType.View
   }
 
@@ -231,10 +227,10 @@ export const useVFlowRequest = () => {
     console.log(`create Workflow: `, res)
     if (!res.success) return
 
+    await returnEditMode(false)
     WorkflowID.value = res.data as string
     WorkflowName.value = name
     localStorage.setItem('curWorkflowID', WorkflowID.value)
-    await returnEditMode(false)
   }
 
   const loadWorkflow = async (wid: string | null) => {
@@ -255,23 +251,36 @@ export const useVFlowRequest = () => {
 
   const loadReleaseWorkflow = async (wid: string | null, rwid: string | null) => {
     if (!!wid && !!rwid) {
-      const res = await postData(`workflow/read`, { wid, rwid, locations: ['wfname', 'release'] })
-      console.log(`read Workflow: `, res)
+      const res = await postData(`workflow/read`, { wid, rwid, locations: ['release'] })
+      // console.log(`read Workflow: `, res)
       if (!res.success) {
         message.error(res.message)
       } else {
         await returnEditMode(false)
-        const name = res.data['wfname']
         const flow = res.data['release']
         loadVflow(flow)
-        setWFIdAndName(wid, name)
         autoSaveWorkflow()
       }
     }
   }
 
+  const viewReleaseWorkflow = async (wid: string | null, rwid: string | null) => {
+    if (!!wid && !!rwid) {
+      const res = await postData(`workflow/read`, { wid, rwid, locations: ['release'] })
+      // console.log(`read Workflow: `, res)
+      if (!res.success) {
+        message.error(res.message)
+      } else {
+        await returnEditMode(false)
+        const flow = res.data['release']
+        loadVflow(flow)
+        setWfModeView()
+      }
+    }
+  }
+
   const getReleaseWorkflows = async (wid: string): Promise<FAReleaseWorkflowInfo[]> => {
-    const res = await postData(`workflow/read`, { wid, locations: ['wfname', 'allReleases'] })
+    const res = await postData(`workflow/read`, { wid, locations: ['allReleases'] })
     if (!res.success) {
       message.error(res.message)
       return []
@@ -344,40 +353,41 @@ export const useVFlowRequest = () => {
     }
   }
 
-  const runflow = async (callback: any = null) => {
-    const vflow = toObject()
-    return await postData(
-      `api/run`,
-      { wid: WorkflowID.value, vflow: vflow },
-      {
-        before: callback?.before,
-        success: async (data: any) => {
-          if (callback?.success) callback.success(data)
-          if (data.success) {
-            console.log('start subscribe')
-            if (data.data.hasOwnProperty('tid')) {
-              setTaskID()
-              subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
-                tid: data.data['tid'],
-                node_type: 'ALL_TASK_NODE',
-                selected_nids: null,
-              })
-            } else {
-              console.log(data.data)
-            }
-          } else {
-            message.error(data.data['validation_errors'])
-          }
-        },
-        error: callback?.error,
-      },
-    )
-  }
+  // const runflow = async (callback: any = null) => {
+  //   const vflow = toObject()
+  //   return await postData(
+  //     `api/run`,
+  //     { wid: WorkflowID.value, vflow: vflow },
+  //     {
+  //       before: callback?.before,
+  //       success: async (data: any) => {
+  //         if (callback?.success) callback.success(data)
+  //         if (data.success) {
+  //           console.log('start subscribe')
+  //           if (data.data.hasOwnProperty('tid')) {
+  //             setTaskID()
+  //             subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
+  //               tid: data.data['tid'],
+  //               node_type: 'ALL_TASK_NODE',
+  //               selected_nids: null,
+  //             })
+  //           } else {
+  //             console.log(data.data)
+  //           }
+  //         } else {
+  //           message.error(data.data['validation_errors'])
+  //         }
+  //       },
+  //       error: callback?.error,
+  //     },
+  //   )
+  // }
 
-  const deleteWorkflow = async (wid: string) => {
-    const res = await postData(`workflow/delete?wid=${wid}`)
+  const deleteWorkflow = async (wid: string, wname: string) => {
+    const res = await postData(`workflow/delete`, { wid })
     console.log(`delete Workflow ${wid}: `, res)
     if (res.success) {
+      message.success(`删除工作流【${wname}】`)
       if (WorkflowID.value === wid) {
         await returnEditMode(false)
         clearWFIdAndName()
@@ -385,35 +395,11 @@ export const useVFlowRequest = () => {
       }
     }
   }
-  const deleteReleaseWorkflow = async (wid: string, rwid: string) => {
+  const deleteReleaseWorkflow = async (wid: string, rwid: string, rwname: string) => {
     const res = await postData(`workflow/delete`, { wid, rwid })
     console.log(`delete Workflow ${wid}: `, res)
     if (res.success) {
-    }
-  }
-
-  const getResults = async (): Promise<FAResult[]> => {
-    if (!WorkflowID.value) return []
-    const res = await getData(`workflow/readallresults?wid=${WorkflowID.value}`)
-    if (!res.success) return []
-    return res.data
-  }
-
-  const loadResult = async (tid: string) => {
-    if (!tid) return
-    const res = await postData(`workflow/loadresult?wid=${WorkflowID.value}&tid=${tid}`)
-    console.log(`load Result ${tid}: `, res)
-    if (res.success) {
-      loadVflow(res.data)
-      // TaskID.value = tid
-      nodesDraggable.value = false
-      nodesConnectable.value = false
-      console.log('loadResult Done.')
-      subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
-        tid: tid,
-        node_type: 'ALL_TASK_NODE',
-        selected_nids: null,
-      })
+      message.success(`删除版本记录【${rwname}】`)
     }
   }
 
@@ -432,24 +418,24 @@ export const useVFlowRequest = () => {
   })
 
   instance = {
-    // runflow,
-    createNewWorkflow,
-    uploadWorkflow,
-    renameWorkflow,
     getWorkflows,
+    createNewWorkflow,
+    renameWorkflow,
+    uploadWorkflow,
     loadWorkflow,
-    loadReleaseWorkflow,
-    recordReleaseWorkflow,
-    getReleaseWorkflows,
-    editReleaseWorkflow,
-    // getResults,
-    // loadResult,
-    returnEditMode,
-    deleteWorkflow,
-    deleteReleaseWorkflow,
     downloadWorkflow,
+    deleteWorkflow,
+
+    getReleaseWorkflows,
+    loadReleaseWorkflow,
+    viewReleaseWorkflow,
     downloadReleaseWorkflow,
-    // onMountedFunc,
+    recordReleaseWorkflow,
+    deleteReleaseWorkflow,
+    editReleaseWorkflow,
+
+    returnEditMode,
+    onMountedFunc,
   }
   return instance
 }

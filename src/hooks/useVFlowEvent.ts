@@ -18,8 +18,8 @@ import {
   type ContextMenuEvent,
 } from '@/hooks/useContextMenu'
 import { useVFlowSaver } from '@/services/useVFlowSaver'
-import { selectedNodeId } from '@/hooks/useVFlowAttribute'
-import type VFNode from '@/components/nodes/VFNodeClass'
+import { selectedNodeId, isEditorMode } from '@/hooks/useVFlowAttribute'
+import { type VFNode } from '@/components/nodes/VFNodeClass'
 
 // 单例模式类型
 type VFlowEventsInstance = {}
@@ -98,6 +98,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
   onNodeContextMenu((event: NodeMouseEvent) => {
     console.log('右键节点')
     event.event.preventDefault()
+    if (!isEditorMode.value) return
     const event_cm: ContextMenuEvent = {
       type: 'node',
       event: event.event as MouseEvent,
@@ -109,6 +110,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
   onPaneContextMenu((event: MouseEvent) => {
     console.log('右键空白')
     event.preventDefault()
+    if (!isEditorMode.value) return
     const event_cm: ContextMenuEvent = {
       type: 'pane',
       event: event,
@@ -119,6 +121,7 @@ export const useVFlowEvents = (): VFlowEventsInstance => {
   onEdgeContextMenu((event: EdgeMouseEvent) => {
     console.log('右键连线')
     event.event.preventDefault()
+    if (!isEditorMode.value) return
     const event_cm: ContextMenuEvent = {
       type: 'edge',
       event: event.event as MouseEvent,

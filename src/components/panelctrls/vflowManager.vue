@@ -36,6 +36,7 @@ import {
   CaretDown,
   SaveOutline,
   EllipsisVertical,
+  PushOutline,
 } from '@vicons/ionicons5'
 import {
   type WorkflowModeType,
@@ -52,7 +53,7 @@ import { useVFlowRequest } from '@/services/useVFlowRequest'
 import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/services/useVFlowRequest'
 import type { ButtonType } from '@/schemas/naiveui_schemas'
 import { renderIcon, formatDateString } from '@/utils/tools'
-import type { pad } from 'lodash'
+
 const {
   createNewWorkflow,
   getWorkflows,
@@ -62,12 +63,13 @@ const {
   returnEditMode,
   downloadWorkflow,
   deleteWorkflow,
-  loadReleaseWorkflow,
+  viewReleaseWorkflow,
   recordReleaseWorkflow,
   getReleaseWorkflows,
   downloadReleaseWorkflow,
   deleteReleaseWorkflow,
   editReleaseWorkflow,
+  loadReleaseWorkflow,
 } = useVFlowRequest()
 
 const message = useMessage()
@@ -86,6 +88,12 @@ const createNewWorkflow_btn = async () => {
           value: new_name.value,
           onUpdateValue: (value) => {
             new_name.value = value
+          },
+          onFocus: () => {
+            isEditing.value = true
+          },
+          onBlur: () => {
+            isEditing.value = false
           },
         },
         {},
@@ -138,6 +146,12 @@ const remaneWorkflow_btn = async (wid: string, wname: string) => {
           onUpdateValue: (value) => {
             new_name.value = value
           },
+          onFocus: () => {
+            isEditing.value = true
+          },
+          onBlur: () => {
+            isEditing.value = false
+          },
         },
         {},
       ),
@@ -172,7 +186,7 @@ const deleteWorkflow_btn = async (wid: string, wname: string) => {
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
-      await deleteWorkflow(wid)
+      await deleteWorkflow(wid, wname)
       await updateWorkflows()
     },
   })
@@ -253,7 +267,13 @@ const loadWorkflow_btn = async (wid: string) => {
 const loadReleaseWorkflow_btn = async (rwid: string, rname: string) => {
   await loadReleaseWorkflow(WorkflowID.value, rwid)
   isShowVFlowMgr.value = false
-  message.success(`【${rname}】版本加载成功`)
+  message.success(`加载版本【${rname}】到草稿`)
+}
+
+const viewReleaseWorkflow_btn = async (rwid: string, rname: string) => {
+  await viewReleaseWorkflow(WorkflowID.value, rwid)
+  isShowVFlowMgr.value = false
+  message.success(`查看版本【${rname}】`)
 }
 
 const recordReleaseWF_btn = async () => {
@@ -276,6 +296,12 @@ const recordReleaseWF_btn = async () => {
                 record_name.value = value
               },
               placeholder: '版本名称',
+              onFocus: () => {
+                isEditing.value = true
+              },
+              onBlur: () => {
+                isEditing.value = false
+              },
             }),
             h(NInput, {
               type: 'textarea',
@@ -285,6 +311,12 @@ const recordReleaseWF_btn = async () => {
                 record_desc.value = value
               },
               placeholder: '版本描述',
+              onFocus: () => {
+                isEditing.value = true
+              },
+              onBlur: () => {
+                isEditing.value = false
+              },
             }),
           ],
         },
@@ -303,6 +335,11 @@ const recordReleaseWF_btn = async () => {
 }
 
 const rwfOperations = [
+  {
+    label: '加载',
+    key: 'load',
+    icon: renderIcon(PushOutline),
+  },
   {
     label: '编辑',
     key: 'edit',
@@ -345,6 +382,12 @@ const editReleaseWorkflow_btn = async (
                 edit_name.value = value
               },
               placeholder: '版本名称',
+              onFocus: () => {
+                isEditing.value = true
+              },
+              onBlur: () => {
+                isEditing.value = false
+              },
             }),
             h(NInput, {
               type: 'textarea',
@@ -354,6 +397,12 @@ const editReleaseWorkflow_btn = async (
                 edit_desc.value = value
               },
               placeholder: '版本描述',
+              onFocus: () => {
+                isEditing.value = true
+              },
+              onBlur: () => {
+                isEditing.value = false
+              },
             }),
           ],
         },
@@ -379,8 +428,8 @@ const deleteReleaseWorkflow_btn = async (wid: string, rwid: string, rwname: stri
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
-      await deleteReleaseWorkflow(wid, rwid)
-      await updateWorkflows()
+      await deleteReleaseWorkflow(wid, rwid, rwname)
+      await updateReleaseWorkflows()
     },
   })
 }
@@ -393,6 +442,8 @@ const handleSelectRWFOperator = (key: string, item: FAReleaseWorkflowInfo) => {
   if (!WorkflowID.value) return
   if (key === 'edit') {
     editReleaseWorkflow_btn(WorkflowID.value, item.rwid, item.name, item.description)
+  } else if (key === 'load') {
+    loadReleaseWorkflow_btn(item.rwid, item.name)
   } else if (key === 'export') {
     downloadReleaseWorkflow_btn(WorkflowID.value, item.rwid)
   } else if (key === 'delete') {
@@ -515,7 +566,7 @@ onMounted(async () => {
                       :wrap="false"
                     >
                       <n-button
-                        @click="loadReleaseWorkflow_btn(item.rwid, item.name)"
+                        @click="viewReleaseWorkflow_btn(item.rwid, item.name)"
                         tertiary
                         :style="{
                           display: 'block',

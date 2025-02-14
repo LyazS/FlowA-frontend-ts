@@ -217,8 +217,8 @@ export const useVFlowManager = (): NodeManagementInstance => {
         width: `${offset_size.width}px`,
         height: `${offset_size.height}px`,
       },
-      draggable: true,
-      selectable: true,
+      draggable: undefined as boolean | undefined,
+      selectable: undefined as boolean | undefined,
       parentNode: undefined as string | undefined,
       position: { x: 0, y: 0 },
     }

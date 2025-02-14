@@ -16,7 +16,7 @@ import {
   NEllipsis,
 } from 'naive-ui'
 import { Add, CaretForward, ArrowUndo, ArrowBack } from '@vicons/ionicons5'
-
+import { useVFlowRequest } from '@/services/useVFlowRequest'
 import {
   type WorkflowModeType,
   selectedNodeId,
@@ -29,7 +29,22 @@ import {
   isShowVFlowMgr,
   isShowJinja2Render,
 } from '@/hooks/useVFlowAttribute'
-
+const {
+  createNewWorkflow,
+  getWorkflows,
+  loadWorkflow,
+  renameWorkflow,
+  uploadWorkflow,
+  returnEditMode,
+  downloadWorkflow,
+  deleteWorkflow,
+  loadReleaseWorkflow,
+  recordReleaseWorkflow,
+  getReleaseWorkflows,
+  downloadReleaseWorkflow,
+  deleteReleaseWorkflow,
+  editReleaseWorkflow,
+} = useVFlowRequest()
 interface RunflowParams {
   before: () => Promise<void>
   success: (data: { success: boolean }) => void
@@ -74,9 +89,7 @@ const run_loading = ref<boolean>(false)
       style="min-width: 200px"
       @click="isShowVFlowMgr = true"
     >
-      <n-ellipsis v-if="WorkflowName" style="max-width: 240px">
-        - {{ WorkflowName }} -
-      </n-ellipsis>
+      <n-ellipsis v-if="WorkflowName" style="max-width: 240px"> - {{ WorkflowName }} - </n-ellipsis>
       <n-ellipsis v-else style="max-width: 240px"> - 工作流管理器 - </n-ellipsis>
     </n-button>
     <!-- <n-button
@@ -90,8 +103,8 @@ const run_loading = ref<boolean>(false)
     >
       Jinja2渲染
     </n-button> -->
-    <!-- <template v-if="isEditorMode">
-      <n-button class="glow-btn" round tertiary type="success" @click="click2runflow">
+    <template v-if="isEditorMode">
+      <n-button class="glow-btn" round tertiary type="success">
         <template #icon>
           <n-icon>
             <CaretForward />
@@ -101,7 +114,7 @@ const run_loading = ref<boolean>(false)
       </n-button>
     </template>
     <template v-else>
-      <n-button class="glow-btn" tertiary round type="success" @click="returnEditorMode">
+      <n-button class="glow-btn" tertiary round type="success" @click="returnEditMode(true)">
         <template #icon>
           <n-icon>
             <ArrowBack />
@@ -109,7 +122,7 @@ const run_loading = ref<boolean>(false)
         </template>
         返回编辑
       </n-button>
-    </template> -->
+    </template>
   </n-flex>
 </template>
 <style scoped>
