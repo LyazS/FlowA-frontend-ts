@@ -4,10 +4,11 @@ import {
   type GraphNode,
   type XYPosition,
   type Connection,
-  type Edge,
+  type GraphEdge,
   type FlowExportObject,
 } from '@vue-flow/core'
 import { useVFlowInitial } from '@/hooks/useVFlowInitial'
+import { useVFlowSaver } from '@/services/useVFlowSaver'
 import { getUuid, setValueByPath } from '@/utils/tools'
 import {
   VFNodeFlag,
@@ -16,7 +17,7 @@ import {
   type NestedVFNodeData,
   type AttachedVFNodeData,
 } from '@/components/nodes/VFNodeInterface'
-import type VFNode from '@/components/nodes/VFNodeClass'
+import { type VFNode, createVFNodeFromData } from '@/components/nodes/VFNodeClass'
 
 export interface NodeAddInfo {
   type: 'client' | 'attached'
@@ -41,15 +42,18 @@ interface NodeManagementInstance {
   addNodeToVFlow: (info: NodeAddInfo) => void
   removeNodeFromVFlow: (node: GraphNode) => void
   resetNodeState: (node: GraphNode) => void
-  addEdgeToVFlow: (params: Edge) => void
+  addEdgeToVFlow: (params: GraphEdge) => void
+  removeEdgeFromVFlow: (edges: GraphEdge[]) => void
   loadVflow: (data: FlowExportObject) => void
 }
 let instance: NodeManagementInstance | null = null
 
 export const useVFlowManager = (): NodeManagementInstance => {
   if (instance) return instance
-  const { getNodes, findNode, addNodes, removeNodes, addEdges, fromObject } = useVueFlow()
+  const { getNodes, findNode, addNodes, removeNodes, addEdges, removeEdges, fromObject } =
+    useVueFlow()
   const { AllTestNodes, createVFNode } = useVFlowInitial()
+  const { autoSaveWorkflow } = useVFlowSaver()
 
   const AllNodeCounters = ref<Record<string, number>>({})
   const NestedNodeGraph = ref<Record<string, NestedNodeType>>({})
@@ -213,8 +217,8 @@ export const useVFlowManager = (): NodeManagementInstance => {
         width: `${offset_size.width}px`,
         height: `${offset_size.height}px`,
       },
-      draggable: true,
-      selectable: true,
+      draggable: undefined as boolean | undefined,
+      selectable: undefined as boolean | undefined,
       parentNode: undefined as string | undefined,
       position: { x: 0, y: 0 },
     }
@@ -288,17 +292,19 @@ export const useVFlowManager = (): NodeManagementInstance => {
     recursiveAddNodeToVFlow(nodeinfo)
     buildNestedNodeGraph()
     recursiveUpdateNodeSize(nodeinfo.parentNodeId)
+    autoSaveWorkflow()
   }
 
   const removeNodeFromVFlow = (node: GraphNode) => {
     removeNodes(node, true, true)
+    autoSaveWorkflow()
   }
 
   const resetNodeState = (node: GraphNode) => {
     ;(node.data as VFNode).resetState()
   }
 
-  const addEdgeToVFlow = (params: Edge) => {
+  const addEdgeToVFlow = (params: GraphEdge) => {
     if (!params.sourceHandle || !params.targetHandle) return
     let is_match_port =
       (params.sourceHandle.startsWith('output') && params.targetHandle.startsWith('input')) ||
@@ -324,7 +330,13 @@ export const useVFlowManager = (): NodeManagementInstance => {
       console.debug('add edge')
       params.type = 'normal'
       addEdges(params)
+      autoSaveWorkflow()
     }
+  }
+
+  const removeEdgeFromVFlow = (edges: GraphEdge[]) => {
+    removeEdges(edges)
+    autoSaveWorkflow()
   }
 
   const loadVflow = async (flow: FlowExportObject) => {
@@ -332,7 +344,8 @@ export const useVFlowManager = (): NodeManagementInstance => {
     await nextTick()
     if (flow) {
       for (const node of flow.nodes) {
-        ;(node.data as VFNode).resetState()
+        node.data = createVFNodeFromData(node.data)
+        node.data.resetState()
       }
       fromObject(flow)
       buildNestedNodeGraph()
@@ -351,6 +364,7 @@ export const useVFlowManager = (): NodeManagementInstance => {
     removeNodeFromVFlow,
     resetNodeState,
     addEdgeToVFlow,
+    removeEdgeFromVFlow,
     loadVflow,
   }
   return instance

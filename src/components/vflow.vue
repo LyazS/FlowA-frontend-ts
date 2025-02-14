@@ -1,5 +1,11 @@
 <template>
-  <n-modal :show="!isReady" display-directive="if" :auto-focus="false" transform-origin="center">
+  <n-modal
+    :show="!isReady"
+    display-directive="if"
+    :auto-focus="false"
+    transform-origin="center"
+    :z-index="99999"
+  >
     <n-spin :size="50">
       <template #description><n-text> 正在加载... </n-text> </template>
     </n-spin>
@@ -82,17 +88,20 @@ import { useVFlowManager } from '@/hooks/useVFlowManager'
 import { useContextMenu } from '@/hooks/useContextMenu'
 import { useVFlowEvents } from '@/hooks/useVFlowEvent'
 import { useKeyboardControls } from '@/hooks/useKeyboardControls'
+import { useVFlowRequest } from '@/services/useVFlowRequest'
 
 const { AllVFNodeTypes, importAllNodes } = useVFlowInitial()
 const { initNodeManagement } = useVFlowManager()
 const { initContextMenu, menuOptions, showMenu } = useContextMenu()
 const {} = useVFlowEvents()
 const {} = useKeyboardControls()
+const { onMountedFunc } = useVFlowRequest()
 const isReady = ref(false)
 onMounted(async () => {
   await importAllNodes()
   initNodeManagement()
   initContextMenu()
+  await onMountedFunc()
   isReady.value = true
 })
 </script>
