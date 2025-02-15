@@ -580,7 +580,12 @@ onMounted(async () => {
                         <n-flex vertical :style="{ width: '100%' }">
                           <n-text style="text-align: left" type="info">{{ item.name }} </n-text>
                           <n-ellipsis style="max-width: 240px; text-align: left">
-                            <n-text style="text-align: left">{{ item.description }}</n-text>
+                            {{ item.description }}
+                            <template #tooltip>
+                              <div style="text-align: left; max-width: 400px">
+                                {{ item.description }}
+                              </div>
+                            </template>
                           </n-ellipsis>
                           <n-flex justify="space-between" align="center">
                             <n-text style="text-align: left" italic depth="3">
