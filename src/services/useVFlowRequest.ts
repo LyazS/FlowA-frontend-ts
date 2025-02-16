@@ -71,6 +71,7 @@ interface VFlowRequestInstance {
     callback?: RequestCallbacks,
   ) => Promise<void>
 
+  runflow: (callback?: RequestCallbacks) => Promise<any>
   returnEditMode: (isEdit: boolean) => Promise<void>
   onMountedFunc: () => Promise<void>
 }
@@ -353,35 +354,35 @@ export const useVFlowRequest = () => {
     }
   }
 
-  // const runflow = async (callback: any = null) => {
-  //   const vflow = toObject()
-  //   return await postData(
-  //     `api/run`,
-  //     { wid: WorkflowID.value, vflow: vflow },
-  //     {
-  //       before: callback?.before,
-  //       success: async (data: any) => {
-  //         if (callback?.success) callback.success(data)
-  //         if (data.success) {
-  //           console.log('start subscribe')
-  //           if (data.data.hasOwnProperty('tid')) {
-  //             setTaskID()
-  //             subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
-  //               tid: data.data['tid'],
-  //               node_type: 'ALL_TASK_NODE',
-  //               selected_nids: null,
-  //             })
-  //           } else {
-  //             console.log(data.data)
-  //           }
-  //         } else {
-  //           message.error(data.data['validation_errors'])
-  //         }
-  //       },
-  //       error: callback?.error,
-  //     },
-  //   )
-  // }
+  const runflow = async (callback?: RequestCallbacks) => {
+    const vflow = toObject()
+    return await postData(
+      `api/run`,
+      { wid: WorkflowID.value, vflow: vflow },
+      {
+        before: callback?.before,
+        success: async (data: any) => {
+          if (callback?.success) callback.success(data)
+          if (data.success) {
+            console.log('start subscribe')
+            if (data.data.hasOwnProperty('tid')) {
+              setWfModeRun()
+              subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
+                tid: data.data['tid'],
+                node_type: 'ALL_TASK_NODE',
+                selected_nids: null,
+              })
+            } else {
+              console.log(data.data)
+            }
+          } else {
+            message.error(data.data['validation_errors'])
+          }
+        },
+        error: callback?.error,
+      },
+    )
+  }
 
   const deleteWorkflow = async (wid: string, wname: string) => {
     const res = await postData(`workflow/delete`, { wid })
@@ -434,6 +435,7 @@ export const useVFlowRequest = () => {
     deleteReleaseWorkflow,
     editReleaseWorkflow,
 
+    runflow,
     returnEditMode,
     onMountedFunc,
   }

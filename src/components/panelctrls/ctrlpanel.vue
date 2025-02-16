@@ -11,14 +11,15 @@ import {
   NButtonGroup,
   NDropdown,
   NInput,
+  NPopover,
   NFlex,
   NIcon,
   NEllipsis,
 } from 'naive-ui'
-import { Add, CaretForward, ArrowUndo, ArrowBack } from '@vicons/ionicons5'
+import { Add, Play, ArrowUndo, ArrowBack, PlayCircleOutline, Stop } from '@vicons/ionicons5'
 import { useVFlowRequest } from '@/services/useVFlowRequest'
 import {
-  type WorkflowModeType,
+  WorkflowModeType,
   selectedNodeId,
   isEditorMode,
   isEditing,
@@ -29,22 +30,7 @@ import {
   isShowVFlowMgr,
   isShowJinja2Render,
 } from '@/hooks/useVFlowAttribute'
-const {
-  createNewWorkflow,
-  getWorkflows,
-  loadWorkflow,
-  renameWorkflow,
-  uploadWorkflow,
-  returnEditMode,
-  downloadWorkflow,
-  deleteWorkflow,
-  loadReleaseWorkflow,
-  recordReleaseWorkflow,
-  getReleaseWorkflows,
-  downloadReleaseWorkflow,
-  deleteReleaseWorkflow,
-  editReleaseWorkflow,
-} = useVFlowRequest()
+const { returnEditMode, runflow } = useVFlowRequest()
 interface RunflowParams {
   before: () => Promise<void>
   success: (data: { success: boolean }) => void
@@ -103,25 +89,61 @@ const run_loading = ref<boolean>(false)
     >
       Jinja2渲染
     </n-button> -->
-    <template v-if="isEditorMode">
-      <n-button class="glow-btn" round tertiary type="success">
-        <template #icon>
-          <n-icon>
-            <CaretForward />
-          </n-icon>
+    <template v-if="WorkflowMode === WorkflowModeType.Edit">
+      <n-popover trigger="hover">
+        <template #trigger>
+          <n-button class="glow-btn" circle tertiary type="success" @click="runflow()">
+            <template #icon>
+              <n-icon>
+                <Play />
+              </n-icon>
+            </template>
+            <!-- 运行 -->
+          </n-button>
         </template>
-        运行
-      </n-button>
+        <span>增量运行</span>
+      </n-popover>
+      <n-popover trigger="hover">
+        <template #trigger>
+          <n-button class="glow-btn" circle tertiary type="success">
+            <template #icon>
+              <n-icon>
+                <PlayCircleOutline />
+              </n-icon>
+            </template>
+            <!-- 运行 -->
+          </n-button>
+        </template>
+        <span>全量运行</span>
+      </n-popover>
     </template>
-    <template v-else>
-      <n-button class="glow-btn" tertiary round type="success" @click="returnEditMode(true)">
-        <template #icon>
-          <n-icon>
-            <ArrowBack />
-          </n-icon>
+    <template v-else-if="WorkflowMode === WorkflowModeType.View">
+      <n-popover trigger="hover">
+        <template #trigger>
+          <n-button class="glow-btn" circle tertiary type="success" @click="returnEditMode(true)">
+            <template #icon>
+              <n-icon>
+                <ArrowBack />
+              </n-icon>
+            </template>
+          </n-button>
         </template>
-        返回编辑
-      </n-button>
+        <span>返回编辑</span>
+      </n-popover>
+    </template>
+    <template v-else-if="WorkflowMode === WorkflowModeType.Run">
+      <n-popover trigger="hover">
+        <template #trigger>
+          <n-button class="glow-btn" tertiary circle type="success">
+            <template #icon>
+              <n-icon>
+                <Stop />
+              </n-icon>
+            </template>
+          </n-button>
+        </template>
+        <span>返回编辑</span>
+      </n-popover>
     </template>
   </n-flex>
 </template>
