@@ -30,7 +30,7 @@ import {
   isShowVFlowMgr,
   isShowJinja2Render,
 } from '@/hooks/useVFlowAttribute'
-const { returnEditMode, runflow } = useVFlowRequest()
+const { returnEditMode, runflow, stopflow } = useVFlowRequest()
 interface RunflowParams {
   before: () => Promise<void>
   success: (data: { success: boolean }) => void
@@ -134,7 +134,7 @@ const run_loading = ref<boolean>(false)
     <template v-else-if="WorkflowMode === WorkflowModeType.Run">
       <n-popover trigger="hover">
         <template #trigger>
-          <n-button class="glow-btn" tertiary circle type="success">
+          <n-button class="glow-btn" tertiary circle type="success" @click="stopflow()">
             <template #icon>
               <n-icon>
                 <Stop />
@@ -142,7 +142,7 @@ const run_loading = ref<boolean>(false)
             </template>
           </n-button>
         </template>
-        <span>返回编辑</span>
+        <span>中止运行</span>
       </n-popover>
     </template>
   </n-flex>

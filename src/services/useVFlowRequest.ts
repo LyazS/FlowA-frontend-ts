@@ -72,6 +72,7 @@ interface VFlowRequestInstance {
   ) => Promise<void>
 
   runflow: (callback?: RequestCallbacks) => Promise<any>
+  stopflow: () => Promise<void>
   returnEditMode: (isEdit: boolean) => Promise<void>
   onMountedFunc: () => Promise<void>
 }
@@ -161,15 +162,21 @@ export const useVFlowRequest = () => {
   const setWfModeRun = () => {
     nodesConnectable.value = false
     nodesDraggable.value = false
-    WorkflowMode.value = WorkflowModeType.View
+    WorkflowMode.value = WorkflowModeType.Run
   }
 
-  const returnEditMode = async (isLoad: boolean = false) => {
+  const returnEditMode = async (isLoad: boolean = false, isCheckStatus: Boolean = false) => {
     selectedNodeId.value = null
     setWfModeEdit()
     unsubscribe()
     if (isLoad) {
       await loadWorkflow(WorkflowID.value)
+    }
+    if (isCheckStatus) {
+      const isRunning = await getWorkflowStatus(WorkflowID.value)
+      if (isRunning) {
+        setWfModeRun()
+      }
     }
   }
 
@@ -241,11 +248,11 @@ export const useVFlowRequest = () => {
       if (!res.success) {
         message.error(res.message)
       } else {
-        await returnEditMode(false)
         const name = res.data['wfname']
         const flow = res.data['vflow']
         loadVflow(flow)
         setWFIdAndName(wid, name)
+        await returnEditMode(false, true)
       }
     }
   }
@@ -364,24 +371,33 @@ export const useVFlowRequest = () => {
         success: async (data: any) => {
           if (callback?.success) callback.success(data)
           if (data.success) {
-            console.log('start subscribe')
-            if (data.data.hasOwnProperty('tid')) {
-              setWfModeRun()
-              subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
-                tid: data.data['tid'],
-                node_type: 'ALL_TASK_NODE',
-                selected_nids: null,
-              })
-            } else {
-              console.log(data.data)
-            }
+            setWfModeRun()
+            // console.log('start subscribe')
+            // if (data.data.hasOwnProperty('tid')) {
+            //   setWfModeRun()
+            //   subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
+            //     tid: data.data['tid'],
+            //     node_type: 'ALL_TASK_NODE',
+            //     selected_nids: null,
+            //   })
+            // } else {
+            //   console.log(data.data)
+            // }
           } else {
-            message.error(data.data['validation_errors'])
+            if (data.data.type == 'validation') console.warn(data.data.validation_errors)
+            else if (data.data.type == 'isrunning') message.error('工作流正在运行，请勿重复运行')
+            else message.error(data.message)
           }
         },
         error: callback?.error,
       },
     )
+  }
+  const stopflow = async () => {
+    const res = await postData(`api/stop`, { wid: WorkflowID.value })
+    if (res.success) {
+      await returnEditMode(false)
+    }
   }
 
   const deleteWorkflow = async (wid: string, wname: string) => {
@@ -403,7 +419,12 @@ export const useVFlowRequest = () => {
       message.success(`删除版本记录【${rwname}】`)
     }
   }
-
+  const getWorkflowStatus = async (wid: string | null) => {
+    if (!wid) return false
+    const res = await getData(`api/status?wid=${wid}`)
+    console.log(`getWorkflowStatus ${wid}: `, res)
+    return res.success
+  }
   const onMountedFunc = async () => {
     const ls_wid = localStorage.getItem('curWorkflowID') || null
     if (ls_wid) {
@@ -436,6 +457,7 @@ export const useVFlowRequest = () => {
     editReleaseWorkflow,
 
     runflow,
+    stopflow,
     returnEditMode,
     onMountedFunc,
   }
