@@ -371,6 +371,7 @@ export const useVFlowRequest = () => {
         success: async (data: any) => {
           if (callback?.success) callback.success(data)
           if (data.success) {
+            message.success('工作流开始运行')
             setWfModeRun()
             // console.log('start subscribe')
             // if (data.data.hasOwnProperty('tid')) {
@@ -396,6 +397,7 @@ export const useVFlowRequest = () => {
   const stopflow = async () => {
     const res = await postData(`api/stop`, { wid: WorkflowID.value })
     if (res.success) {
+      message.success('工作流停止运行')
       await returnEditMode(false)
     }
   }
