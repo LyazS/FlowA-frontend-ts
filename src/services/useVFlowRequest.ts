@@ -49,6 +49,10 @@ interface FAResult {
 }
 
 interface VFlowRequestInstance {
+  setWfModeEdit: () => void
+  setWfModeView: () => void
+  setWfModeRun: () => void
+
   getWorkflows: () => Promise<FAWorkflowInfo[]>
   createNewWorkflow: (name: string) => Promise<void>
   renameWorkflow: (wid: string, name: string, callback: RequestCallbacks) => Promise<void>
@@ -73,7 +77,8 @@ interface VFlowRequestInstance {
 
   runflow: (callback?: RequestCallbacks) => Promise<any>
   stopflow: () => Promise<void>
-  returnEditMode: (isEdit: boolean) => Promise<void>
+  clearWFStatus: () => Promise<void>
+  checkWFStatusAndSwitch: () => Promise<void>
   onMountedFunc: () => Promise<void>
 }
 let instance: VFlowRequestInstance | null = null
@@ -165,18 +170,17 @@ export const useVFlowRequest = () => {
     WorkflowMode.value = WorkflowModeType.Run
   }
 
-  const returnEditMode = async (isLoad: boolean = false, isCheckStatus: Boolean = false) => {
+  const clearWFStatus = async () => {
     selectedNodeId.value = null
     setWfModeEdit()
     unsubscribe()
-    if (isLoad) {
-      await loadWorkflow(WorkflowID.value)
-    }
-    if (isCheckStatus) {
-      const isRunning = await getWorkflowStatus(WorkflowID.value)
-      if (isRunning) {
-        setWfModeRun()
-      }
+  }
+
+  const checkWFStatusAndSwitch = async () => {
+    const isRunning = await getWorkflowStatus(WorkflowID.value)
+    if (isRunning) {
+      setWfModeRun()
+      // subscribe()
     }
   }
 
@@ -229,16 +233,14 @@ export const useVFlowRequest = () => {
   }
 
   const createNewWorkflow = async (name: string) => {
-    removeNodes(getNodes.value)
-    await nextTick()
     const res = await postData(`workflow/create`, { type: 'new', name: name })
     console.log(`create Workflow: `, res)
     if (!res.success) return
 
-    await returnEditMode(false)
-    WorkflowID.value = res.data as string
-    WorkflowName.value = name
-    localStorage.setItem('curWorkflowID', WorkflowID.value)
+    await clearWFStatus()
+    removeNodes(getNodes.value)
+    await nextTick()
+    setWFIdAndName(res.data as string, name)
   }
 
   const loadWorkflow = async (wid: string | null) => {
@@ -247,13 +249,12 @@ export const useVFlowRequest = () => {
       console.log(`read Workflow: `, res)
       if (!res.success) {
         message.error(res.message)
-      } else {
-        const name = res.data['wfname']
-        const flow = res.data['vflow']
-        loadVflow(flow)
-        setWFIdAndName(wid, name)
-        await returnEditMode(false, true)
       }
+
+      const name = res.data['wfname']
+      const flow = res.data['vflow']
+      loadVflow(flow)
+      setWFIdAndName(wid, name)
     }
   }
 
@@ -264,7 +265,6 @@ export const useVFlowRequest = () => {
       if (!res.success) {
         message.error(res.message)
       } else {
-        await returnEditMode(false)
         const flow = res.data['release']
         loadVflow(flow)
         autoSaveWorkflow()
@@ -279,10 +279,8 @@ export const useVFlowRequest = () => {
       if (!res.success) {
         message.error(res.message)
       } else {
-        await returnEditMode(false)
         const flow = res.data['release']
         loadVflow(flow)
-        setWfModeView()
       }
     }
   }
@@ -313,8 +311,8 @@ export const useVFlowRequest = () => {
       message.error(res.message)
       return
     } else {
-      const wid = res.data
-      await loadWorkflow(wid)
+      clearWFIdAndName()
+      await loadWorkflow(res.data)
       message.success(`上传工作流【${name}】成功`)
     }
   }
@@ -398,7 +396,7 @@ export const useVFlowRequest = () => {
     const res = await postData(`api/stop`, { wid: WorkflowID.value })
     if (res.success) {
       message.success('工作流停止运行')
-      await returnEditMode(false)
+      await clearWFStatus()
     }
   }
 
@@ -408,7 +406,7 @@ export const useVFlowRequest = () => {
     if (res.success) {
       message.success(`删除工作流【${wname}】`)
       if (WorkflowID.value === wid) {
-        await returnEditMode(false)
+        await clearWFStatus()
         clearWFIdAndName()
         removeNodes(getNodes.value)
       }
@@ -434,6 +432,7 @@ export const useVFlowRequest = () => {
         JSON.parse(localStorage.getItem(`${ls_wid}:Jinja2RenderNodeIDs`) || '[]') ?? []
     }
     await loadWorkflow(ls_wid)
+    await checkWFStatusAndSwitch()
     console.log('loadWorkflow Done.')
   }
 
@@ -442,6 +441,10 @@ export const useVFlowRequest = () => {
   })
 
   instance = {
+    setWfModeEdit,
+    setWfModeView,
+    setWfModeRun,
+
     getWorkflows,
     createNewWorkflow,
     renameWorkflow,
@@ -460,7 +463,8 @@ export const useVFlowRequest = () => {
 
     runflow,
     stopflow,
-    returnEditMode,
+    clearWFStatus,
+    checkWFStatusAndSwitch,
     onMountedFunc,
   }
   return instance

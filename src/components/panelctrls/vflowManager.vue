@@ -55,12 +55,17 @@ import type { ButtonType } from '@/schemas/naiveui_schemas'
 import { renderIcon, formatDateString } from '@/utils/tools'
 
 const {
+  setWfModeEdit,
+  setWfModeView,
+  setWfModeRun,
+  checkWFStatusAndSwitch,
+  clearWFStatus,
+
   createNewWorkflow,
   getWorkflows,
   loadWorkflow,
   renameWorkflow,
   uploadWorkflow,
-  returnEditMode,
   downloadWorkflow,
   deleteWorkflow,
   viewReleaseWorkflow,
@@ -260,11 +265,14 @@ const uploadWF = async ({
 
 const loadWorkflow_btn = async (wid: string) => {
   if (WorkflowID.value == wid) return
+  clearWFStatus()
   await loadWorkflow(wid)
+  await checkWFStatusAndSwitch()
   isShowVFlowMgr.value = false
 }
 
 const loadReleaseWorkflow_btn = async (rwid: string, rname: string) => {
+  clearWFStatus()
   await loadReleaseWorkflow(WorkflowID.value, rwid)
   isShowVFlowMgr.value = false
   message.success(`加载版本【${rname}】到草稿`)
@@ -272,6 +280,7 @@ const loadReleaseWorkflow_btn = async (rwid: string, rname: string) => {
 
 const viewReleaseWorkflow_btn = async (rwid: string, rname: string) => {
   await viewReleaseWorkflow(WorkflowID.value, rwid)
+  setWfModeView()
   isShowVFlowMgr.value = false
   message.success(`查看版本【${rname}】`)
 }
