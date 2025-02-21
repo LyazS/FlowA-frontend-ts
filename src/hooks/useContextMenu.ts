@@ -90,8 +90,8 @@ export const useContextMenu = (): ContextMenuInstance => {
       .sort((a, b) => a[0].localeCompare(b[0])) // 按key排序
       .map(([key, item]) => item)
       .filter((item) => !item.isAttachedNode() && !(VFNodeFlag.isPassive & item.flag))
-    console.debug('AddNodesInPane', AddNodesInPane.value)
-    console.debug('AddNodesInNest', AddNodesInNest.value)
+    // console.debug('AddNodesInPane', AddNodesInPane.value)
+    // console.debug('AddNodesInNest', AddNodesInNest.value)
   }
 
   const onClickContextMenuRmNode = (event_cm: NodeContextMenuEvent) => {

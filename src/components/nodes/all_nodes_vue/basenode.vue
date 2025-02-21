@@ -192,8 +192,7 @@ const outputHandles = computed<HandleData[]>(() => {
     label: pattern.test(value.label) ? value.label.split('/')[1] : value.label,
   }))
 })
-console.debug('inputHandles', inputHandles.value)
-console.debug('outputHandles', outputHandles.value)
+
 const cbfuncHandles = computed<HandleData[]>(() => {
   return Object.entries(thisnodedata.connections!.callbackFuncs)
     .map(([key, value]) => ({ key, label: value.label }))
@@ -263,7 +262,7 @@ const countCopy = (statecopy: Record<string, { status: string }>) => {
 const debouncedCountCopy = debounce(countCopy, 500)
 
 onMounted(() => {
-  console.debug('onMounted node')
+  // console.debug('onMounted node')
   watch(
     () => thisnode.data.state.copy,
     (newValue) => {
@@ -273,7 +272,7 @@ onMounted(() => {
   )
 
   if (!(thisnode.data as VFNode).isNestedNode()) {
-    console.debug("add node's size watcher")
+    // console.debug("add node's size watcher")
     watch(
       [max_handles_top, max_handles_bottom],
       ([newtop, newbottom]) => {

@@ -52,18 +52,16 @@ import {
 import { useVFlowRequest } from '@/services/useVFlowRequest'
 import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/services/useVFlowRequest'
 import type { ButtonType } from '@/schemas/naiveui_schemas'
-import { renderIcon, formatDateString } from '@/utils/tools'
+import { renderIcon, formatDateString, getErrorMessage } from '@/utils/tools'
 
 const {
-  setWfModeEdit,
-  setWfModeView,
-  setWfModeRun,
+  setWFMode,
   checkWFStatusAndSwitch,
   clearWFStatus,
 
   createNewWorkflow,
   getWorkflows,
-  loadWorkflow,
+  switchWorkflow,
   renameWorkflow,
   uploadWorkflow,
   downloadWorkflow,
@@ -82,7 +80,32 @@ const dialog = useDialog()
 const release_wfs = ref<FAReleaseWorkflowInfo[]>([])
 const workflows = ref<(FAWorkflowInfo & { type: ButtonType })[]>([])
 
-const createNewWorkflow_btn = async () => {
+const updateWorkflowsAction = async () => {
+  const items = await getWorkflows()
+  if (items.type === 'success' && !!items.data) {
+    workflows.value = []
+    for (const item of items.data) {
+      let wf_type: ButtonType = 'default'
+      if (item.wid == WorkflowID.value) {
+        wf_type = 'success'
+      }
+      workflows.value.push({
+        ...item,
+        type: wf_type,
+      })
+    }
+  }
+}
+
+const updateReleaseWorkflowsAction = async () => {
+  if (!WorkflowID.value) return
+  const items = await getReleaseWorkflows(WorkflowID.value)
+  if (items.type === 'success' && !!items.data) {
+    release_wfs.value = items.data
+  }
+}
+
+const createNewWorkflowAction = async () => {
   const new_name = ref('')
   dialog.warning({
     title: '新建工作流',
@@ -92,8 +115,12 @@ const createNewWorkflow_btn = async () => {
         {
           value: new_name.value,
           onUpdateValue: (value) => {
-            new_name.value = value
+            new_name.value = value.trimStart()
           },
+          placeholder: '请输入工作流名称（2-20个字符）',
+          autofocus: true,
+          maxlength: 20,
+          showCount: true,
           onFocus: () => {
             isEditing.value = true
           },
@@ -110,89 +137,118 @@ const createNewWorkflow_btn = async () => {
         message.error('名称不能为空')
         return
       }
-      selectedNodeId.value = null
-      await createNewWorkflow(new_name.value)
-      isShowVFlowMgr.value = false
+      try {
+        const finalName = new_name.value.trim()
+
+        // 客户端验证
+        if (!finalName) {
+          message.error('名称不能为空')
+          return
+        }
+        if (finalName.length < 2) {
+          message.error('名称至少需要2个字符')
+          return
+        }
+
+        // 执行创建
+        const res = await createNewWorkflow(finalName)
+
+        if (res.type === 'success') {
+          message.success(`工作流【${finalName}】创建成功`)
+          await updateWorkflowsAction() // 刷新列表
+          isShowVFlowMgr.value = false
+        } else {
+          message.error(`创建失败: ${res.message}`)
+        }
+      } catch (error) {
+        message.error(`创建失败: ${getErrorMessage(error)}`)
+      } finally {
+        isEditing.value = false
+      }
     },
   })
 }
 
-const updateWorkflows = async () => {
-  const res = await getWorkflows()
-  // console.debug(res)
-  workflows.value = []
-  for (const item of res) {
-    let wf_type: ButtonType = 'default'
-    if (item.wid == WorkflowID.value) {
-      wf_type = 'success'
-    }
-    workflows.value.push({
-      ...item,
-      type: wf_type,
-    })
-  }
-}
+const renameWorkflowAction = async (wid: string, originalName: string) => {
+  const newName = ref(originalName.trim())
 
-const updateReleaseWorkflows = async () => {
-  if (!WorkflowID.value) return
-  const res = await getReleaseWorkflows(WorkflowID.value)
-  release_wfs.value = res
-}
-
-const remaneWorkflow_btn = async (wid: string, wname: string) => {
-  const new_name = ref(wname)
+  // 创建响应式对话框
   dialog.info({
     title: '重命名工作流',
     content: () =>
-      h(
-        NInput,
-        {
-          value: new_name.value,
-          onUpdateValue: (value) => {
-            new_name.value = value
-          },
-          onFocus: () => {
-            isEditing.value = true
-          },
-          onBlur: () => {
-            isEditing.value = false
-          },
+      h(NInput, {
+        value: newName.value,
+        placeholder: '请输入新名称',
+        autofocus: true,
+        onFocus: () => {
+          isEditing.value = true
         },
-        {},
-      ),
-    positiveText: '确定',
+        onBlur: () => {
+          isEditing.value = false
+        },
+        onUpdateValue: (val: string) => (newName.value = val),
+        onKeydown: (e: KeyboardEvent) => e.stopPropagation(), // 防止冒泡
+      }),
+    positiveText: '确认',
     negativeText: '取消',
     onPositiveClick: async () => {
-      if (new_name.value.trim() === '') {
-        message.error('名称不能为空')
-        return
+      try {
+        const finalName = newName.value.trim()
+
+        // 客户端校验
+        if (!finalName) {
+          message.error('名称不能为空')
+          return
+        }
+        if (finalName === originalName) {
+          message.warning('名称未修改')
+          return
+        }
+
+        // 执行重命名
+        const res = await renameWorkflow(wid, finalName)
+
+        if (res.type === 'success') {
+          message.success(`已重命名为【${finalName}】`)
+          await updateWorkflowsAction() // 刷新列表
+        } else {
+          message.error('重命名失败，请检查网络')
+        }
+      } catch (error) {
+        message.error(`重命名操作失败: ${getErrorMessage(error)}`)
+      } finally {
+        isEditing.value = false
       }
-      await renameWorkflow(wid, new_name.value, {
-        success: async (data) => {
-          message.success(`重命名为【${new_name.value}】`)
-        },
-        error: async (err) => {
-          message.error(`重命名【${new_name.value}】失败: ${err}`)
-        },
-      })
-      await updateWorkflows()
+    },
+    onNegativeClick: () => {
+      isEditing.value = false
     },
   })
 }
 
-const downloadWorkflow_btn = async (wid: string) => {
-  await downloadWorkflow(wid)
+const downloadWorkflowAction = async (wid: string) => {
+  const res = await downloadWorkflow(wid)
+  if (res.type === 'success') {
+    message.success(`工作流已下载`)
+  } else {
+    message.error(`下载失败: ${res.message}`)
+  }
 }
 
-const deleteWorkflow_btn = async (wid: string, wname: string) => {
+const deleteWorkflowAction = async (wid: string, wname: string) => {
   dialog.warning({
     title: '即将删除工作流',
     content: `【${wname}】`,
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
-      await deleteWorkflow(wid, wname)
-      await updateWorkflows()
+      const res = await deleteWorkflow(wid, wname)
+      if (res.type === 'success') {
+        message.success(`工作流【${wname}】已删除`)
+        await updateWorkflowsAction()
+      } else {
+        message.error(`删除失败: ${res.message}`)
+      }
     },
   })
 }
@@ -216,11 +272,11 @@ const wfOperations = [
 ]
 const handleSelectWFOperator = (key: string, wid: string, wname: string) => {
   if (key === 'rename') {
-    remaneWorkflow_btn(wid, wname)
+    renameWorkflowAction(wid, wname)
   } else if (key === 'exportWF') {
-    downloadWorkflow_btn(wid)
+    downloadWorkflowAction(wid)
   } else if (key === 'deleteWF') {
-    deleteWorkflow_btn(wid, wname)
+    deleteWorkflowAction(wid, wname)
   }
 }
 
@@ -243,8 +299,13 @@ const uploadWF = async ({
           throw new Error('读取文件内容为空')
         }
         const jsonContent = JSON.parse(event.target.result as string)
-        await uploadWorkflow(file.name.replace('.json', ''), jsonContent)
-        isShowVFlowMgr.value = false
+        const res = await uploadWorkflow(file.name.replace('.json', ''), jsonContent)
+        if (res.type === 'success') {
+          message.success(`上传成功: ${file.name}`)
+          isShowVFlowMgr.value = false
+        } else {
+          message.error(`上传失败: ${res.message}`)
+        }
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : '未知错误'
         message.error(`JSON 解析失败: ${errorMessage}`)
@@ -263,29 +324,38 @@ const uploadWF = async ({
   }
 }
 
-const loadWorkflow_btn = async (wid: string) => {
+const switchWorkflowAction = async (wid: string) => {
   if (WorkflowID.value == wid) return
-  clearWFStatus()
-  await loadWorkflow(wid)
-  await checkWFStatusAndSwitch()
-  isShowVFlowMgr.value = false
+  const res = await switchWorkflow(wid)
+  if (res.type === 'success') {
+    message.success(`已切换工作流`)
+    isShowVFlowMgr.value = false
+  } else {
+    message.error(`切换失败: ${res.message}`)
+  }
 }
 
-const loadReleaseWorkflow_btn = async (rwid: string, rname: string) => {
-  clearWFStatus()
-  await loadReleaseWorkflow(WorkflowID.value, rwid)
-  isShowVFlowMgr.value = false
-  message.success(`加载版本【${rname}】到草稿`)
+const loadReleaseWorkflowAction = async (rwid: string, rname: string) => {
+  const res = await loadReleaseWorkflow(WorkflowID.value, rwid)
+  if (res.type === 'success') {
+    isShowVFlowMgr.value = false
+    message.success(`已加载版本【${rname}】`)
+  } else {
+    message.error(`版本加载失败: ${res.message}`)
+  }
 }
 
-const viewReleaseWorkflow_btn = async (rwid: string, rname: string) => {
-  await viewReleaseWorkflow(WorkflowID.value, rwid)
-  setWfModeView()
-  isShowVFlowMgr.value = false
-  message.success(`查看版本【${rname}】`)
+const viewReleaseWorkflowAction = async (rwid: string, rname: string) => {
+  const res = await viewReleaseWorkflow(WorkflowID.value, rwid)
+  if (res.type === 'success') {
+    message.success(`查看版本【${rname}】`)
+    isShowVFlowMgr.value = false
+  } else {
+    message.error(`查看失败: ${res.message}`)
+  }
 }
 
-const recordReleaseWF_btn = async () => {
+const recordReleaseWFAction = async () => {
   const record_name = ref('')
   const record_desc = ref('')
   dialog.warning({
@@ -333,12 +403,30 @@ const recordReleaseWF_btn = async () => {
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
-      if (record_name.value.trim() === '') {
-        message.error('名称不能为空')
-        return
+      try {
+        const finalName = record_name.value.trim()
+
+        // 客户端验证
+        if (!finalName) {
+          message.error('名称不能为空')
+          return
+        }
+        if (finalName.length < 2 || finalName.length > 20) {
+          message.error('版本名称需为1-20个字符')
+          return
+        }
+        const res = await recordReleaseWorkflow(record_name.value, record_desc.value)
+        if (res.type === 'success') {
+          message.success(`版本【${finalName}】记录成功`)
+          await updateReleaseWorkflowsAction()
+        } else {
+          message.error(`记录失败: ${res.message}`)
+        }
+      } catch (error) {
+        message.error(`记录失败: ${getErrorMessage(error)}`)
+      } finally {
+        isEditing.value = false
       }
-      await recordReleaseWorkflow(record_name.value, record_desc.value)
-      await updateReleaseWorkflows()
     },
   })
 }
@@ -366,14 +454,17 @@ const rwfOperations = [
   },
 ]
 
-const editReleaseWorkflow_btn = async (
+const editReleaseWorkflowAction = async (
   wid: string,
   rwid: string,
-  rwname: string,
-  rwdesc: string,
+  originalName: string,
+  originalDesc: string,
 ) => {
-  const edit_name = ref(rwname)
-  const edit_desc = ref(rwdesc)
+  const editState = reactive({
+    name: originalName.trim(),
+    desc: originalDesc.trim(),
+    processing: false,
+  })
   dialog.info({
     title: '编辑版本记录',
     content: () =>
@@ -386,9 +477,9 @@ const editReleaseWorkflow_btn = async (
         {
           default: () => [
             h(NInput, {
-              value: edit_name.value,
+              value: editState.name,
               onUpdateValue: (value) => {
-                edit_name.value = value
+                editState.name = value
               },
               placeholder: '版本名称',
               onFocus: () => {
@@ -401,9 +492,9 @@ const editReleaseWorkflow_btn = async (
             h(NInput, {
               type: 'textarea',
               autosize: { minRows: 3, maxRows: 5 },
-              value: edit_desc.value,
+              value: editState.desc,
               onUpdateValue: (value) => {
-                edit_desc.value = value
+                editState.desc = value
               },
               placeholder: '版本描述',
               onFocus: () => {
@@ -419,57 +510,84 @@ const editReleaseWorkflow_btn = async (
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
-      if (edit_name.value.trim() === '') {
-        message.error('名称不能为空')
-        return
-      }
       if (!WorkflowID.value) return
-      await editReleaseWorkflow(WorkflowID.value, rwid, edit_name.value, edit_desc.value)
-      await updateReleaseWorkflows()
+      try {
+        // 客户端校验
+        if (!editState.name.trim()) {
+          message.error('版本名称不能为空')
+          return
+        }
+        if (editState.name === originalName && editState.desc === originalDesc) {
+          message.warning('内容未修改')
+          return
+        }
+
+        // 执行修改
+        const success = await editReleaseWorkflow(wid, rwid, editState.name, editState.desc)
+
+        if (success) {
+          message.success('版本信息编辑成功')
+          await updateReleaseWorkflowsAction() // 刷新版本列表
+        } else {
+          message.error('版本信息编辑失败')
+        }
+      } catch (error) {
+        message.error(`操作失败: ${getErrorMessage(error)}`)
+      }
     },
   })
 }
 
-const deleteReleaseWorkflow_btn = async (wid: string, rwid: string, rwname: string) => {
+const deleteReleaseWorkflowAction = async (wid: string, rwid: string, rwname: string) => {
   dialog.warning({
     title: '即将删除版本记录',
     content: `【${rwname}】`,
     positiveText: '确定',
     negativeText: '取消',
     onPositiveClick: async () => {
-      await deleteReleaseWorkflow(wid, rwid, rwname)
-      await updateReleaseWorkflows()
+      const res = await deleteReleaseWorkflow(wid, rwid, rwname)
+      if (res.type === 'success') {
+        message.success(`版本【${rwname}】已删除`)
+        await updateReleaseWorkflowsAction()
+      } else {
+        message.error(`删除失败: ${res.message}`)
+      }
     },
   })
 }
 
-const downloadReleaseWorkflow_btn = async (wid: string, rwid: string) => {
-  await downloadReleaseWorkflow(wid, rwid)
+const downloadReleaseWorkflowAction = async (wid: string, rwid: string) => {
+  const res = await downloadReleaseWorkflow(wid, rwid)
+  if (res.type === 'success') {
+    message.success(`版本下载成功`)
+  } else {
+    message.error(`下载失败: ${res.message}`)
+  }
 }
 
 const handleSelectRWFOperator = (key: string, item: FAReleaseWorkflowInfo) => {
   if (!WorkflowID.value) return
   if (key === 'edit') {
-    editReleaseWorkflow_btn(WorkflowID.value, item.rwid, item.name, item.description)
+    editReleaseWorkflowAction(WorkflowID.value, item.rwid, item.name, item.description)
   } else if (key === 'load') {
-    loadReleaseWorkflow_btn(item.rwid, item.name)
+    loadReleaseWorkflowAction(item.rwid, item.name)
   } else if (key === 'export') {
-    downloadReleaseWorkflow_btn(WorkflowID.value, item.rwid)
+    downloadReleaseWorkflowAction(WorkflowID.value, item.rwid)
   } else if (key === 'delete') {
-    deleteReleaseWorkflow_btn(WorkflowID.value, item.rwid, item.name)
+    deleteReleaseWorkflowAction(WorkflowID.value, item.rwid, item.name)
   }
 }
 
 watch(isShowVFlowMgr, async (newVal) => {
   if (newVal) {
-    await updateWorkflows()
-    await updateReleaseWorkflows()
+    await updateWorkflowsAction()
+    await updateReleaseWorkflowsAction()
   }
 })
 
 onMounted(async () => {
-  await updateWorkflows()
-  await updateReleaseWorkflows()
+  await updateWorkflowsAction()
+  await updateReleaseWorkflowsAction()
 })
 </script>
 <template>
@@ -484,7 +602,7 @@ onMounted(async () => {
         <n-grid-item :span="16">
           <n-flex vertical>
             <n-flex :style="{ flexWrap: 'nowrap', width: '100%' }">
-              <n-button type="info" text @click="createNewWorkflow_btn">
+              <n-button type="info" text @click="createNewWorkflowAction">
                 <template #icon>
                   <n-icon>
                     <Add />
@@ -515,7 +633,7 @@ onMounted(async () => {
                     :size="4"
                   >
                     <n-button
-                      @click="loadWorkflow_btn(item.wid)"
+                      @click="switchWorkflowAction(item.wid)"
                       secondary
                       size="large"
                       :type="item.type"
@@ -556,7 +674,7 @@ onMounted(async () => {
                 :wrap="false"
               >
                 <n-text>共 {{ release_wfs.length }} 个记录</n-text>
-                <n-button type="info" text @click="recordReleaseWF_btn">
+                <n-button type="info" text @click="recordReleaseWFAction">
                   <template #icon>
                     <n-icon>
                       <SaveOutline />
@@ -575,7 +693,7 @@ onMounted(async () => {
                       :wrap="false"
                     >
                       <n-button
-                        @click="viewReleaseWorkflow_btn(item.rwid, item.name)"
+                        @click="viewReleaseWorkflowAction(item.rwid, item.name)"
                         tertiary
                         :style="{
                           display: 'block',

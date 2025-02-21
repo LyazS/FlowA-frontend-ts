@@ -83,8 +83,8 @@ export const useVFlowManager = (): NodeManagementInstance => {
         NestedNodeGraph.value[node.parentNode].children.push(nid)
       }
     }
-    console.debug('getNodes', getNodes.value)
-    console.debug('buildNestedNodeGraph', NestedNodeGraph.value)
+    // console.debug('getNodes', getNodes.value)
+    // console.debug('buildNestedNodeGraph', NestedNodeGraph.value)
   }
 
   const recursiveUpdateNodeSize = (nodeId: string | null | undefined) => {

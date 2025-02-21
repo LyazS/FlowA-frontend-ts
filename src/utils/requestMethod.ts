@@ -1,58 +1,43 @@
 import axios, { AxiosError, type AxiosResponse } from 'axios'
-
-export interface RequestCallbacks {
-  before?: () => Promise<void>
-  success?: (data: any) => Promise<void>
-  error?: (errorMsg: string) => Promise<void>
+// 定义后端响应类型
+export interface FAWorkflowOperationResponse<T = any> {
+  type: 'success' | 'error'
+  message?: string
+  data?: T
 }
 
-type RequestMethod = 'post' | 'get'
-
-async function axiosRequest(
-  url: string,
-  method: RequestMethod,
-  data?: any,
-  callback?: RequestCallbacks,
-): Promise<any> {
+// 统一请求函数
+async function axiosRequest<T = any>(url: string, method: 'get' | 'post', data?: any): Promise<T> {
   try {
-    if (!!callback?.before) await callback.before()
+    const response = await axios({
+      method,
+      url: `${import.meta.env.VITE_API_URL}/${url}`,
+      data: method === 'post' ? data : undefined,
+    })
 
-    let response: AxiosResponse<any, any>
-    if (method === 'post') {
-      response = await axios.post(`${import.meta.env.VITE_API_URL}/${url}`, data)
-    } else {
-      response = await axios.get(`${import.meta.env.VITE_API_URL}/${url}`)
+    const result: FAWorkflowOperationResponse = response.data
+
+    // 根据业务逻辑判断是否视为成功
+    if (result.type !== 'success') {
+      throw new Error(result.message || 'Request failed')
     }
 
-    if (!!callback?.success) await callback.success(response.data)
-    return response.data
+    return result.data as T // 返回有效数据
   } catch (error) {
-    let errorMsg = ''
-    const axiosError = error as AxiosError
+    const axiosError = error as AxiosError<FAWorkflowOperationResponse>
 
-    if (axiosError.response) {
-      errorMsg = `响应状态码: ${
-        axiosError.response.status
-      }, 响应数据: ${JSON.stringify(axiosError.response.data, null, 2)}`
-    } else if (axiosError.request) {
-      errorMsg = '没有收到响应'
-    } else {
-      errorMsg = `错误信息: ${axiosError.message}`
+    // 构造友好错误信息
+    let errorMsg = '请求失败'
+    if (axiosError.response?.data?.message) {
+      errorMsg += `: ${axiosError.response.data.message}`
+    } else if (axiosError.message) {
+      errorMsg += `: ${axiosError.message}`
     }
 
-    if (!!callback?.error) await callback.error(errorMsg)
-    throw error
+    throw new Error(errorMsg) // 统一抛出可读错误
   }
 }
 
-export const postData = async (
-  url: string,
-  data?: any,
-  callback?: RequestCallbacks,
-): Promise<any> => {
-  return await axiosRequest(url, 'post', data, callback)
-}
-
-export const getData = async (url: string, callback?: RequestCallbacks): Promise<any> => {
-  return await axiosRequest(url, 'get', null, callback)
-}
+// 封装GET/POST方法
+export const getData = <T = any>(url: string) => axiosRequest<T>(url, 'get')
+export const postData = <T = any>(url: string, data?: any) => axiosRequest<T>(url, 'post', data)
