@@ -16,7 +16,15 @@ import {
   NIcon,
   NEllipsis,
 } from 'naive-ui'
-import { Add, Play, ArrowUndo, ArrowBack, PlayCircleOutline, Stop } from '@vicons/ionicons5'
+import {
+  Add,
+  Play,
+  ArrowUndo,
+  ArrowBack,
+  PlayCircleOutline,
+  Stop,
+  DocumentText,
+} from '@vicons/ionicons5'
 import { useVFlowRequest } from '@/services/useVFlowRequest'
 import {
   WorkflowModeType,
@@ -120,7 +128,13 @@ const run_loading = ref<boolean>(false)
     <template v-else-if="WorkflowMode === WorkflowModeType.View">
       <n-popover trigger="hover">
         <template #trigger>
-          <n-button class="glow-btn" circle tertiary type="success" @click="switchWorkflow(WorkflowID)">
+          <n-button
+            class="glow-btn"
+            circle
+            tertiary
+            type="success"
+            @click="switchWorkflow(WorkflowID)"
+          >
             <template #icon>
               <n-icon>
                 <ArrowBack />
@@ -132,6 +146,18 @@ const run_loading = ref<boolean>(false)
       </n-popover>
     </template>
     <template v-else-if="WorkflowMode === WorkflowModeType.Run">
+      <n-popover trigger="hover">
+        <template #trigger>
+          <n-button class="glow-btn" circle tertiary type="success">
+            <template #icon>
+              <n-icon>
+                <DocumentText />
+              </n-icon>
+            </template>
+          </n-button>
+        </template>
+        <span>Jinja2渲染</span>
+      </n-popover>
       <n-popover trigger="hover">
         <template #trigger>
           <n-button class="glow-btn" tertiary circle type="success" @click="stopflow()">
