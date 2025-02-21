@@ -145,8 +145,8 @@ const createNewWorkflowAction = async () => {
           message.error('名称不能为空')
           return
         }
-        if (finalName.length < 2) {
-          message.error('名称至少需要2个字符')
+        if (finalName.length < 1) {
+          message.error('名称至少需要1个字符')
           return
         }
 
