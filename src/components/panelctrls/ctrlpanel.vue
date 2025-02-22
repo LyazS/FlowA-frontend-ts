@@ -100,7 +100,7 @@ const run_loading = ref<boolean>(false)
     <template v-if="WorkflowMode === WorkflowModeType.Edit">
       <n-popover trigger="hover">
         <template #trigger>
-          <n-button class="glow-btn" circle tertiary type="success" @click="runflow()">
+          <n-button class="glow-btn" circle tertiary type="success" @click="runflow('Incremental')">
             <template #icon>
               <n-icon>
                 <Play />
@@ -113,7 +113,7 @@ const run_loading = ref<boolean>(false)
       </n-popover>
       <n-popover trigger="hover">
         <template #trigger>
-          <n-button class="glow-btn" circle tertiary type="success">
+          <n-button class="glow-btn" circle tertiary type="success" @click="runflow('full')">
             <template #icon>
               <n-icon>
                 <PlayCircleOutline />

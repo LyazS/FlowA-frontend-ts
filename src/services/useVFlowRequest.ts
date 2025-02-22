@@ -86,7 +86,7 @@ interface VFlowRequestInstance {
     description: string,
   ) => Promise<FAWorkflowOperationResponse>
 
-  runflow: () => Promise<FAWorkflowOperationResponse>
+  runflow: (runtype: 'full' | 'Incremental') => Promise<FAWorkflowOperationResponse>
   stopflow: () => Promise<FAWorkflowOperationResponse>
   clearWFStatus: () => Promise<void>
   checkWFStatusAndSwitch: () => Promise<void>
@@ -141,6 +141,7 @@ export const useVFlowRequest = () => {
       console.log('onopen SSE', response.ok)
     },
     (event: EventSourceMessage) => {
+      console.log('[SSE] ', event.data)
       if (event.event === 'updatenode') {
         const data: SSEResponseData = JSON.parse(event.data)
         updateNodeFromSSE(data)
@@ -209,7 +210,11 @@ export const useVFlowRequest = () => {
     const isRunning = await getWFIsRunning(WorkflowID.value)
     if (isRunning) {
       setWFMode(WorkflowModeType.Run)
-      // subscribe()
+      subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
+        type: 'VFlowUI',
+        wid: WorkflowID.value,
+        selected_nids: null,
+      })
     }
   }
 
@@ -837,7 +842,7 @@ export const useVFlowRequest = () => {
   //     },
   //   )
   // }
-  const runflow = async (): Promise<FAWorkflowOperationResponse> => {
+  const runflow = async (runtype: 'full' | 'Incremental'): Promise<FAWorkflowOperationResponse> => {
     // 参数校验
     if (!WorkflowID.value) {
       console.warn('[Run] 无效的工作流ID', WorkflowID.value)
@@ -851,6 +856,7 @@ export const useVFlowRequest = () => {
     try {
       // 准备请求数据
       const requestPayload = {
+        type: runtype,
         wid: WorkflowID.value,
         vflow: toObject(),
       }
@@ -871,15 +877,12 @@ export const useVFlowRequest = () => {
         case 'success':
           console.debug('[Run] 启动成功')
           setWFMode(WorkflowModeType.Run)
-          // if (data.data.hasOwnProperty('tid')) {
-          //   subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
-          //     tid: data.data['tid'],
-          //     node_type: 'ALL_TASK_NODE',
-          //     selected_nids: null,
-          //   })
-          // } else {
-          //   console.log(data.data)
-          // }
+          subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
+            type: 'VFlowUI',
+            wid: WorkflowID.value,
+            selected_nids: null,
+          })
+          console.debug('[Run] 订阅信息')
           return { type: 'success' }
         default:
           console.error('[Run] 未知响应类型', response)
@@ -915,12 +918,13 @@ export const useVFlowRequest = () => {
     try {
       // 类型化请求参数
       const requestPayload = {
+        type: 'Stop',
         wid: currentWid,
       }
 
       await postData('api/stop', requestPayload)
       await clearWFStatus()
-
+      await switchWorkflow(WorkflowID.value)
       // 记录成功日志
       console.debug('[Workflow] 停止成功', {
         wid: currentWid,
