@@ -411,7 +411,7 @@ const recordReleaseWFAction = async () => {
           message.error('名称不能为空')
           return
         }
-        if (finalName.length < 2 || finalName.length > 20) {
+        if (finalName.length < 1 || finalName.length > 20) {
           message.error('版本名称需为1-20个字符')
           return
         }
