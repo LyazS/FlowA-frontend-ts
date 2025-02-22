@@ -794,39 +794,7 @@ export const useVFlowRequest = () => {
       return { type: 'error', message: err.message }
     }
   }
-  // const runflow = async (): Promise<FAWorkflowOperationResponse> => {
-  //   const vflow = toObject()
-  //   return await postData(
-  //     `api/run`,
-  //     { wid: WorkflowID.value, vflow: vflow },
-  //     {
-  //       before: callback?.before,
-  //       success: async (data: any) => {
-  //         if (callback?.success) callback.success(data)
-  //         if (data.success) {
-  //           message.success('工作流开始运行')
-  //           setWFMode(WorkflowModeType.Run)
-  //           // console.log('start subscribe')
-  //           // if (data.data.hasOwnProperty('tid')) {
-  //           //   setWfModeRun()
-  //           //   subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
-  //           //     tid: data.data['tid'],
-  //           //     node_type: 'ALL_TASK_NODE',
-  //           //     selected_nids: null,
-  //           //   })
-  //           // } else {
-  //           //   console.log(data.data)
-  //           // }
-  //         } else {
-  //           if (data.data.type == 'validation') console.warn(data.data.validation_errors)
-  //           else if (data.data.type == 'isrunning') message.error('工作流正在运行，请勿重复运行')
-  //           else message.error(data.message)
-  //         }
-  //       },
-  //       error: callback?.error,
-  //     },
-  //   )
-  // }
+
   const runflow = async (runtype: 'full' | 'Incremental'): Promise<FAWorkflowOperationResponse> => {
     // 参数校验
     if (!WorkflowID.value) {
@@ -856,7 +824,15 @@ export const useVFlowRequest = () => {
       switch (response.type) {
         case 'validation':
           console.error('[Run] 验证失败', response.validation_errors)
-          return { type: 'error', message: '工作流配置错误', data: response }
+          if (response.validation_errors) {
+            for (const error of response.validation_errors) {
+              const node = findNode(error.nid) as NodeWithVFData
+              if (node) {
+                node.data.state.validation_errors=[...error.errors]
+              }
+            }
+          }
+          return { type: 'error', message: '工作流配置错误' }
         case 'isrunning':
           return { type: 'error', message: '工作流正在运行中' }
         case 'success':

@@ -140,7 +140,6 @@ const Jinja2RenderUseWorker = throttle(() => {
     .filter(Boolean)
 
   if (tasks.length > 0) {
-    console.log('Jinja2RenderUseWorker:', tasks)
     worker.postMessage({ tasks })
   }
 }, 300)
@@ -151,12 +150,19 @@ const { subscribe: subscribeJinja, unsubscribe: unsubscribeJinja } = SubscribeSS
     console.log('onopen SSE Jinja2', response.ok)
   },
   (event: EventSourceMessage) => {
-    if (event.event === 'flowfinish') {
+    if (!event.event || event.event === 'flowfinish') {
       return
     }
     const lines: SSEResponseData<JinjaRefTriggerData>[] = []
-    const data = JSON.parse(event.data)
-    console.log('[SSE Jinja2] data:', data)
+
+    let data
+    try {
+      data = JSON.parse(event.data)
+    } catch (error) {
+      console.error('JSON 解析失败:', error)
+      console.error('无效的 JSON 输入:', event.data)
+      return // 防止后续代码因 data 无效而崩溃
+    }
 
     if (event.event === 'batchupdatenode') {
       lines.push(...data)
@@ -194,7 +200,6 @@ const { subscribe: subscribeJinja, unsubscribe: unsubscribeJinja } = SubscribeSS
               break
           }
         })
-        console.log('Jinja2RenderData:', Jinja2RenderData.value)
       } catch (error) {
         console.error('Error processing update:', error)
       }

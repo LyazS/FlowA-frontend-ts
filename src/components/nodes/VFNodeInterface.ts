@@ -120,6 +120,7 @@ interface VFNodeState {
     Success: number
     Error: number
   }
+  validation_errors: string[]
 }
 
 interface VFNodeConfig {

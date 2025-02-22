@@ -22,6 +22,7 @@ import {
   NText,
   NDivider,
   NModal,
+  NAlert,
   type SelectOption,
 } from 'naive-ui'
 import { Panel, useVueFlow } from '@vue-flow/core'
@@ -50,8 +51,8 @@ const editable_aggregatebranchs = defineAsyncComponent(
   () => import('./editables/aggregatebranchs.vue'),
 )
 const editable_llmmodel = defineAsyncComponent(() => import('./editables/llmmodel.vue'))
-const editable_httprequests = defineAsyncComponent(() => import('./editables/httprequests.vue'));
-const editable_httptimeout = defineAsyncComponent(() => import('./editables/httptimeout.vue'));
+const editable_httprequests = defineAsyncComponent(() => import('./editables/httprequests.vue'))
+const editable_httptimeout = defineAsyncComponent(() => import('./editables/httptimeout.vue'))
 
 const { findNode, getHandleConnections } = useVueFlow()
 
@@ -234,7 +235,9 @@ const outputsComponents = computed<VNode | null>(() => {
 const nodedatatext = computed(() => {
   return curSelectedNode.value ? JSON.stringify(curSelectedNode.value.data, null, 2) : ''
 })
-
+const validation_errors = computed(() => {
+  return curSelectedNode.value ? curSelectedNode.value.data.state.validation_errors : []
+})
 onMounted(() => {})
 onUnmounted(() => {
   if (isEditing) isEditing.value = false
@@ -268,6 +271,11 @@ onUnmounted(() => {
         />
       </template>
       <n-flex vertical :key="`${nodeId}-main`">
+        <n-alert v-if="validation_errors.length > 0" title="参数错误" type="error">
+          <template v-for="(error, index) in validation_errors" :key="index">
+            <n-text>{{ error }}</n-text>
+          </template>
+        </n-alert>
         <n-flex
           vertical
           v-if="Object.keys(payloadInnerComponents).length > 0"

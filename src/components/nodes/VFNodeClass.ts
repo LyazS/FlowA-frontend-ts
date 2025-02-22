@@ -85,6 +85,7 @@ class VFNode implements BaseVFNodeData {
       status: 'Default',
       copy: {},
       copyCount: { Running: 0, Success: 0, Error: 0 },
+      validation_errors: [],
     }
   }
 
