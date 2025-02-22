@@ -18,28 +18,13 @@ import {
   WorkflowMode,
   WorkflowModeType,
 } from '@/hooks/useVFlowAttribute'
-
-interface SSEResponseData {
-  nid: string
-  oriid: string
-  data: {
-    type: 'overwrite' | 'append' | 'remove' | 'dontcare'
-    path?: (string | number)[]
-    data?: any
-  }[]
-}
-
-export interface FAWorkflowInfo {
-  wid: string
-  name: string
-  lastModified: string
-}
-export interface FAReleaseWorkflowInfo {
-  rwid: string
-  name: string
-  description: string
-  releaseTime: string
-}
+import {
+  FAProgressRequestType,
+  type FANodeUpdateData,
+  type SSEResponseData,
+  type FAWorkflowInfo,
+  type FAReleaseWorkflowInfo,
+} from '@/schemas/vflow_schemas'
 
 interface VFlowRequestInstance {
   setWFMode: (mode: WorkflowModeType) => void
@@ -211,7 +196,7 @@ export const useVFlowRequest = () => {
     if (isRunning) {
       setWFMode(WorkflowModeType.Run)
       subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
-        type: 'VFlowUI',
+        type: FAProgressRequestType.VFlowUI,
         wid: WorkflowID.value,
         selected_nids: null,
       })

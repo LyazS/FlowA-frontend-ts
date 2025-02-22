@@ -50,7 +50,7 @@ import {
   isShowVFlowMgr,
 } from '@/hooks/useVFlowAttribute'
 import { useVFlowRequest } from '@/services/useVFlowRequest'
-import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/services/useVFlowRequest'
+import type { FAWorkflowInfo, FAReleaseWorkflowInfo } from '@/schemas/vflow_schemas'
 import type { ButtonType } from '@/schemas/naiveui_schemas'
 import { renderIcon, formatDateString, getErrorMessage } from '@/utils/tools'
 

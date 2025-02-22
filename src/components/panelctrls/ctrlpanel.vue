@@ -86,17 +86,6 @@ const run_loading = ref<boolean>(false)
       <n-ellipsis v-if="WorkflowName" style="max-width: 240px"> - {{ WorkflowName }} - </n-ellipsis>
       <n-ellipsis v-else style="max-width: 240px"> - 工作流管理器 - </n-ellipsis>
     </n-button>
-    <!-- <n-button
-      v-if="TaskID"
-      class="glow-btn"
-      round
-      tertiary
-      type="primary"
-      style="width: 100px"
-      @click="isShowJinja2Render = true && !!TaskID"
-    >
-      Jinja2渲染
-    </n-button> -->
     <template v-if="WorkflowMode === WorkflowModeType.Edit">
       <n-popover trigger="hover">
         <template #trigger>
@@ -148,7 +137,13 @@ const run_loading = ref<boolean>(false)
     <template v-else-if="WorkflowMode === WorkflowModeType.Run">
       <n-popover trigger="hover">
         <template #trigger>
-          <n-button class="glow-btn" circle tertiary type="success">
+          <n-button
+            class="glow-btn"
+            circle
+            tertiary
+            type="success"
+            @click="isShowJinja2Render = true"
+          >
             <template #icon>
               <n-icon>
                 <DocumentText />
