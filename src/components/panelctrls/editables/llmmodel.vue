@@ -217,13 +217,14 @@ const responseFormatConfig: ConfigItem = {
 }
 
 onMounted(async () => {
-  const res = await getData(`workflow/nodeconfig?ntype=LLM_inference`)
-  if (!res.success) {
-    message.error(res.message)
-  } else {
-    modelSelections.value = Object.values(res.data).map((item: any) => {
+  try {
+    const res = await getData(`workflow/nodeconfig?ntype=LLM_inference`)
+    modelSelections.value = Object.values(res).map((item: any) => {
       return { label: item.name, value: item.name }
     })
+  } catch (err) {
+    message.error('获取模型列表失败')
+    console.error(err)
   }
 })
 </script>
