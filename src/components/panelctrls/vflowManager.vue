@@ -117,7 +117,7 @@ const createNewWorkflowAction = async () => {
           onUpdateValue: (value) => {
             new_name.value = value.trimStart()
           },
-          placeholder: '请输入工作流名称（2-20个字符）',
+          placeholder: '请输入工作流名称（1-20个字符）',
           autofocus: true,
           maxlength: 20,
           showCount: true,
