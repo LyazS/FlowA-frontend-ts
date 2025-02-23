@@ -306,15 +306,37 @@ onMounted(() => {
     watch(
       () => thisnode.data.state.status,
       (newStatus) => {
-        const statusClasses = {
-          Default: 'node-status-default',
-          Pending: 'node-status-pending',
-          Running: 'node-status-running',
-          Success: 'node-status-success',
-          Canceled: 'node-status-canceled',
-          Error: 'node-status-error',
+        if (newStatus === 'Default') {
+          if (thisnode.data.state.validation_errors.length > 0) {
+            thisnode.class = 'node-status-invalid'
+          } else {
+            thisnode.class = 'node-status-default'
+          }
+        } else if (newStatus === 'Pending') {
+          thisnode.class = 'node-status-pending'
+        } else if (newStatus === 'Running') {
+          thisnode.class = 'node-status-running'
+        } else if (newStatus === 'Success') {
+          thisnode.class = 'node-status-success'
+        } else if (newStatus === 'Canceled') {
+          thisnode.class = 'node-status-canceled'
+        } else if (newStatus === 'Error') {
+          thisnode.class = 'node-status-error'
         }
-        thisnode.class = statusClasses[newStatus as keyof typeof statusClasses]
+      },
+      { immediate: true },
+    )
+
+    watch(
+      () => thisnode.data.state.validation_errors,
+      (newErrors) => {
+        if (thisnode.data.state.status === 'Default') {
+          if (newErrors.length > 0) {
+            thisnode.class = 'node-status-invalid'
+          } else {
+            thisnode.class = 'node-status-default'
+          }
+        }
       },
       { immediate: true },
     )
@@ -324,12 +346,31 @@ onMounted(() => {
 
 <style>
 .node-status-default,
+.node-status-invalid,
 .node-status-pending,
 .node-status-running,
 .node-status-success,
 .node-status-canceled,
 .node-status-error {
   overflow: hidden;
+}
+
+.node-status-invalid {
+  background: linear-gradient(45deg, #400000, #b71c1c, #ff4444, #b71c1c, #400000);
+  background-size: 300% 300%;
+  animation: emeraldWave 8s ease infinite;
+}
+
+.node-status-invalid.selected,
+.node-status-invalid:hover {
+  --color: #ff4444; /* 亮红色 */
+  border: 2px solid var(--color);
+  box-shadow:
+    0 0 10px var(--color),
+    inset 0 0 3px 1px var(--color);
+  transition:
+    box-shadow 0.2s ease,
+    border 0.2s ease;
 }
 
 .node-status-pending {
@@ -397,20 +438,6 @@ onMounted(() => {
   animation: emeraldWave 8s ease infinite;
 }
 
-@keyframes emeraldWave {
-  0% {
-    background-position: 10% 50%;
-  }
-
-  50% {
-    background-position: 90% 50%;
-  }
-
-  100% {
-    background-position: 10% 50%;
-  }
-}
-
 .node-status-success.selected,
 .node-status-success:hover {
   --color: #00bfa5;
@@ -473,6 +500,20 @@ onMounted(() => {
   transition:
     box-shadow 0.2s ease,
     border 0.2s ease;
+}
+
+@keyframes emeraldWave {
+  0% {
+    background-position: 10% 50%;
+  }
+
+  50% {
+    background-position: 90% 50%;
+  }
+
+  100% {
+    background-position: 10% 50%;
+  }
 }
 
 @keyframes scrollBackground {

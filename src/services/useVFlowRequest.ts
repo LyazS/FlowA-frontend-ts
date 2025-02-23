@@ -824,6 +824,7 @@ export const useVFlowRequest = () => {
       switch (response.type) {
         case 'validation':
           console.error('[Run] 验证失败', response.validation_errors)
+          message.error('运行失败，请检查错误节点的配置')
           if (response.validation_errors) {
             for (const error of response.validation_errors) {
               const node = findNode(error.nid) as NodeWithVFData

@@ -272,9 +272,11 @@ onUnmounted(() => {
       </template>
       <n-flex vertical :key="`${nodeId}-main`">
         <n-alert v-if="validation_errors.length > 0" title="参数错误" type="error">
-          <template v-for="(error, index) in validation_errors" :key="index">
-            <n-text>{{ error }}</n-text>
-          </template>
+          <n-flex vertical>
+            <template v-for="(error, index) in validation_errors" :key="index">
+              <n-text>{{ error }}</n-text>
+            </template>
+          </n-flex>
         </n-alert>
         <n-flex
           vertical
