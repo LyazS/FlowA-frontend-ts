@@ -105,7 +105,7 @@ export const useVFlowRequest = () => {
         // 更新状态
         if (nid.includes('#') && path?.[0] === 'state' && path?.[1] === 'status') {
           const vf_node = findNode(oriid)
-          if (vf_node && (vf_node as NodeWithVFData).data.isAttachedNode()) {
+          if (vf_node && !(vf_node as NodeWithVFData).data.isAttachedNode()) {
             vf_node.data.state.copy[nid] = { status: data }
           }
         } else {

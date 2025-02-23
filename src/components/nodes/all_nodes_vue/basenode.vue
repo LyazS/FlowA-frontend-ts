@@ -322,6 +322,8 @@ onMounted(() => {
           thisnode.class = 'node-status-canceled'
         } else if (newStatus === 'Error') {
           thisnode.class = 'node-status-error'
+        } else if (newStatus === 'Passive') {
+          thisnode.class = 'node-status-passive'
         }
       },
       { immediate: true },
@@ -347,12 +349,39 @@ onMounted(() => {
 <style>
 .node-status-default,
 .node-status-invalid,
+.node-status-passive,
 .node-status-pending,
 .node-status-running,
 .node-status-success,
 .node-status-canceled,
 .node-status-error {
   overflow: hidden;
+}
+
+.node-status-passive {
+  background: linear-gradient(
+    45deg,
+    rgba(51, 33, 0, 0.8),
+    rgba(102, 82, 39, 0.9),
+    rgba(158, 135, 91, 0.95),
+    rgba(102, 82, 39, 0.9),
+    rgba(51, 33, 0, 0.8)
+  );
+  background-size: 300% 300%;
+  animation: emeraldWave 8s ease infinite;
+  backdrop-filter: brightness(1.1);
+}
+
+.node-status-passive.selected,
+.node-status-passive:hover {
+  --color: rgba(194, 168, 120, 0.8);
+  border: 2px solid var(--color);
+  box-shadow:
+    0 0 12px rgba(194, 168, 120, 0.6),
+    inset 0 0 4px 1px rgba(255, 235, 195, 0.3);
+  transition:
+    box-shadow 0.3s ease,
+    border 0.3s ease;
 }
 
 .node-status-invalid {
