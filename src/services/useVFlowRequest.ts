@@ -827,7 +827,6 @@ export const useVFlowRequest = () => {
       switch (response.type) {
         case 'validation':
           console.error('[Run] 验证失败', response.validation_errors)
-          message.error('运行失败，请检查错误节点的配置')
           if (response.validation_errors) {
             for (const error of response.validation_errors) {
               const node = findNode(error.nid) as NodeWithVFData
@@ -842,12 +841,14 @@ export const useVFlowRequest = () => {
         case 'success':
           console.debug('[Run] 启动成功')
           setWFMode(WorkflowModeType.Run)
-          subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
-            type: 'VFlowUI',
-            wid: WorkflowID.value,
-            selected_nids: null,
-          })
-          console.debug('[Run] 订阅信息')
+          setTimeout(() => {
+            console.debug('[Run] 订阅信息')
+            subscribe(`${import.meta.env.VITE_API_URL}/api/progress`, 'POST', null, {
+              type: 'VFlowUI',
+              wid: WorkflowID.value,
+              selected_nids: null,
+            })
+          }, 1000)
           return { type: 'success' }
         default:
           console.error('[Run] 未知响应类型', response)
@@ -862,10 +863,7 @@ export const useVFlowRequest = () => {
         stack: err.stack,
       })
 
-      return {
-        type: 'error',
-        message: '运行请求失败，请检查网络连接',
-      }
+      return { type: 'error', message: '运行请求失败，请检查网络连接' }
     }
   }
 
@@ -874,26 +872,18 @@ export const useVFlowRequest = () => {
     const currentWid = WorkflowID.value
     if (!currentWid) {
       console.warn('[Workflow] 停止操作 - 无效的工作流ID', currentWid)
-      return {
-        type: 'error',
-        message: '当前工作流不可用',
-      }
+      return { type: 'error', message: '当前工作流不可用' }
     }
 
     try {
       // 类型化请求参数
-      const requestPayload = {
-        type: 'Stop',
-        wid: currentWid,
-      }
+      const requestPayload = { type: 'Stop', wid: currentWid }
 
       await postData('api/stop', requestPayload)
       await clearWFStatus()
       await switchWorkflow(WorkflowID.value)
       // 记录成功日志
-      console.debug('[Workflow] 停止成功', {
-        wid: currentWid,
-      })
+      console.debug('[Workflow] 停止成功', { wid: currentWid })
 
       return { type: 'success' }
     } catch (error) {
