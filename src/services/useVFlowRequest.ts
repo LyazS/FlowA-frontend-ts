@@ -808,6 +808,9 @@ export const useVFlowRequest = () => {
 
     try {
       // 准备请求数据
+      for (const node of getNodes.value) {
+        node.data.resetState()
+      }
       const requestPayload = {
         type: runtype,
         wid: WorkflowID.value,
@@ -829,7 +832,7 @@ export const useVFlowRequest = () => {
             for (const error of response.validation_errors) {
               const node = findNode(error.nid) as NodeWithVFData
               if (node) {
-                node.data.state.validation_errors=[...error.errors]
+                node.data.state.validation_errors = [...error.errors]
               }
             }
           }
