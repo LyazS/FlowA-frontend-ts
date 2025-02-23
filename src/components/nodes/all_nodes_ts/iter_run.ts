@@ -22,8 +22,8 @@ export function createNode(): VFNode {
 
   node.addHandle(VFNodeConnectionType.inputs, 'input')
   node.addHandle(VFNodeConnectionType.outputs, 'output')
-  node.addHandle(VFNodeConnectionType.callbackUsers, 'callbackUser')
-  node.addHandle(VFNodeConnectionType.callbackFuncs, 'callbackFunc')
+  // node.addHandle(VFNodeConnectionType.callbackUsers, 'callbackUser')
+  // node.addHandle(VFNodeConnectionType.callbackFuncs, 'callbackFunc')
   node.addHandle(VFNodeConnectionType.self, 'attach_output')
   node.addHandleData(VFNodeConnectionType.self, 'self', {
     type: VFNodeConnectionDataType.FromOuter,

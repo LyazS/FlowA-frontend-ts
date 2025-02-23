@@ -68,6 +68,11 @@ export const useVFlowManager = (): NodeManagementInstance => {
     for (const ntype of Object.keys(AllNodeCounters.value)) {
       AllNodeCounters.value[ntype] = 0
     }
+    for (const node of getNodes.value) {
+      if (node.data.ntype in AllNodeCounters.value) {
+        AllNodeCounters.value[node.data.ntype] += 1
+      }
+    }
   }
 
   const getNestedNodeById = (nid: string): NestedNodeType => {
