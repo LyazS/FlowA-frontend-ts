@@ -51,7 +51,7 @@ const runIncrementalFlowAction = async (): Promise<void> => {
   if (res.type === 'success') {
     message.success('开始运行')
   } else {
-    message.error(res.message)
+    message.error(`运行失败：${res.message}`)
   }
 }
 const runFullFlowAction = async (): Promise<void> => {
@@ -61,7 +61,7 @@ const runFullFlowAction = async (): Promise<void> => {
   if (res.type === 'success') {
     message.success('开始运行')
   } else {
-    message.error(res.message)
+    message.error(`运行失败：${res.message}`)
   }
 }
 </script>

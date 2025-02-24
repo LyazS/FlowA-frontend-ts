@@ -196,12 +196,12 @@ export const useVFlowManager = (): NodeManagementInstance => {
       height: initnode.size.height + 8,
     }
     let new_node_id = nodeinfo.nid || getUuid()
-    if (nodeinfo.type === 'client' && parentNode) {
-      const nest_regex = /#(\w+)/g
-      const pid_matches = parentNode.id.match(nest_regex) || []
-      console.debug('pid matches', pid_matches)
+    if (parentNode) {
       const pdata = parentNode.data as VFNode
       if (pdata.isNestedNode()) {
+        const nest_regex = /#(\w+)/g
+        const pid_matches = parentNode.id.match(nest_regex) || []
+        console.debug('parentNode id matches', pid_matches)
         new_node_id += pid_matches.join('') + `#${pdata.nesting.tag}`
       }
     }
@@ -280,10 +280,9 @@ export const useVFlowManager = (): NodeManagementInstance => {
     if (initnode.isNestedNode()) {
       console.log(`add ${Object.keys(initnode.nesting.attached_nodes).length} fixed nested nodes`)
       for (const antype of Object.keys(initnode.nesting.attached_nodes)) {
-        const anid = getUuid()
-        recursiveAddNodeToVFlow({
+        const anid = recursiveAddNodeToVFlow({
           ntype: antype,
-          nid: anid,
+          nid: null,
           type: 'attached',
           parentNodeId: new_node.id,
           pos: { x: 0, y: 0 },
@@ -291,6 +290,7 @@ export const useVFlowManager = (): NodeManagementInstance => {
         initnode.nesting.attached_nodes[antype as VFNodeConnectionDataAttachedType]!.nid = anid
       }
     }
+    return new_node_id
   }
 
   const addNodeToVFlow = (nodeinfo: NodeAddInfo) => {
