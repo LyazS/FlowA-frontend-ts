@@ -28,15 +28,15 @@ export function createNode(): VFNode {
       type: 'LLMModel',
       key: 'modelconfig',
       data: {
-        model: { type: 'value', value: 'deepseek-ai/DeepSeek-V2.5' },
+        model: { type: 'Value', value: 'deepseek-ai/DeepSeek-V2.5' },
         stream: true,
-        max_tokens: { type: 'null', value: 4096 },
-        temperature: { type: 'null', value: 0.75 },
-        top_p: { type: 'null', value: 0.9 },
+        max_tokens: { type: 'Null', value: 4096 },
+        temperature: { type: 'Null', value: 0.75 },
+        top_p: { type: 'Null', value: 0.9 },
         // top_k: { type: "null", value: 50 },
-        frequency_penalty: { type: 'null', value: 0.5 },
-        response_format: { type: 'null', value: 'json' }, // json
-        stop: { type: 'null', value: null }, // string|string[]|null
+        frequency_penalty: { type: 'Null', value: 0.5 },
+        response_format: { type: 'Null', value: 'json' }, // json
+        stop: { type: 'Null', value: null }, // string|string[]|null
       },
       uitype: 'llmmodel',
     },

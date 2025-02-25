@@ -192,8 +192,7 @@ const outputHandles = computed<HandleData[]>(() => {
     label: pattern.test(value.label) ? value.label.split('/')[1] : value.label,
   }))
 })
-console.debug('inputHandles', inputHandles.value)
-console.debug('outputHandles', outputHandles.value)
+
 const cbfuncHandles = computed<HandleData[]>(() => {
   return Object.entries(thisnodedata.connections!.callbackFuncs)
     .map(([key, value]) => ({ key, label: value.label }))
@@ -263,7 +262,7 @@ const countCopy = (statecopy: Record<string, { status: string }>) => {
 const debouncedCountCopy = debounce(countCopy, 500)
 
 onMounted(() => {
-  console.debug('onMounted node')
+  // console.debug('onMounted node')
   watch(
     () => thisnode.data.state.copy,
     (newValue) => {
@@ -273,7 +272,7 @@ onMounted(() => {
   )
 
   if (!(thisnode.data as VFNode).isNestedNode()) {
-    console.debug("add node's size watcher")
+    // console.debug("add node's size watcher")
     watch(
       [max_handles_top, max_handles_bottom],
       ([newtop, newbottom]) => {
@@ -307,15 +306,39 @@ onMounted(() => {
     watch(
       () => thisnode.data.state.status,
       (newStatus) => {
-        const statusClasses = {
-          Default: 'node-status-default',
-          Pending: 'node-status-pending',
-          Running: 'node-status-running',
-          Success: 'node-status-success',
-          Canceled: 'node-status-canceled',
-          Error: 'node-status-error',
+        if (newStatus === 'Default') {
+          if (thisnode.data.state.validation_errors.length > 0) {
+            thisnode.class = 'node-status-invalid'
+          } else {
+            thisnode.class = 'node-status-default'
+          }
+        } else if (newStatus === 'Pending') {
+          thisnode.class = 'node-status-pending'
+        } else if (newStatus === 'Running') {
+          thisnode.class = 'node-status-running'
+        } else if (newStatus === 'Success') {
+          thisnode.class = 'node-status-success'
+        } else if (newStatus === 'Canceled') {
+          thisnode.class = 'node-status-canceled'
+        } else if (newStatus === 'Error') {
+          thisnode.class = 'node-status-error'
+        } else if (newStatus === 'Passive') {
+          thisnode.class = 'node-status-passive'
         }
-        thisnode.class = statusClasses[newStatus as keyof typeof statusClasses]
+      },
+      { immediate: true },
+    )
+
+    watch(
+      () => thisnode.data.state.validation_errors,
+      (newErrors) => {
+        if (thisnode.data.state.status === 'Default') {
+          if (newErrors.length > 0) {
+            thisnode.class = 'node-status-invalid'
+          } else {
+            thisnode.class = 'node-status-default'
+          }
+        }
       },
       { immediate: true },
     )
@@ -325,12 +348,58 @@ onMounted(() => {
 
 <style>
 .node-status-default,
+.node-status-invalid,
+.node-status-passive,
 .node-status-pending,
 .node-status-running,
 .node-status-success,
 .node-status-canceled,
 .node-status-error {
   overflow: hidden;
+}
+
+.node-status-passive {
+  background: linear-gradient(
+    45deg,
+    rgba(51, 33, 0, 0.8),
+    rgba(102, 82, 39, 0.9),
+    rgba(158, 135, 91, 0.95),
+    rgba(102, 82, 39, 0.9),
+    rgba(51, 33, 0, 0.8)
+  );
+  background-size: 300% 300%;
+  animation: emeraldWave 8s ease infinite;
+  backdrop-filter: brightness(1.1);
+}
+
+.node-status-passive.selected,
+.node-status-passive:hover {
+  --color: rgba(194, 168, 120, 0.8);
+  border: 2px solid var(--color);
+  box-shadow:
+    0 0 12px rgba(194, 168, 120, 0.6),
+    inset 0 0 4px 1px rgba(255, 235, 195, 0.3);
+  transition:
+    box-shadow 0.3s ease,
+    border 0.3s ease;
+}
+
+.node-status-invalid {
+  background: linear-gradient(45deg, #400000, #b71c1c, #ff4444, #b71c1c, #400000);
+  background-size: 300% 300%;
+  animation: emeraldWave 8s ease infinite;
+}
+
+.node-status-invalid.selected,
+.node-status-invalid:hover {
+  --color: #ff4444; /* 亮红色 */
+  border: 2px solid var(--color);
+  box-shadow:
+    0 0 10px var(--color),
+    inset 0 0 3px 1px var(--color);
+  transition:
+    box-shadow 0.2s ease,
+    border 0.2s ease;
 }
 
 .node-status-pending {
@@ -398,20 +467,6 @@ onMounted(() => {
   animation: emeraldWave 8s ease infinite;
 }
 
-@keyframes emeraldWave {
-  0% {
-    background-position: 10% 50%;
-  }
-
-  50% {
-    background-position: 90% 50%;
-  }
-
-  100% {
-    background-position: 10% 50%;
-  }
-}
-
 .node-status-success.selected,
 .node-status-success:hover {
   --color: #00bfa5;
@@ -474,6 +529,20 @@ onMounted(() => {
   transition:
     box-shadow 0.2s ease,
     border 0.2s ease;
+}
+
+@keyframes emeraldWave {
+  0% {
+    background-position: 10% 50%;
+  }
+
+  50% {
+    background-position: 90% 50%;
+  }
+
+  100% {
+    background-position: 10% 50%;
+  }
 }
 
 @keyframes scrollBackground {

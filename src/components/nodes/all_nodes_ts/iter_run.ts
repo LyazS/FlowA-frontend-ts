@@ -15,15 +15,15 @@ export function createNode(): VFNode {
   node.setNodeFlag(VFNodeFlag.isTask | VFNodeFlag.isNested).setSize(200, 200)
 
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_input)
-  node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_callbackUser)
+  // node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_callbackUser)
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_output)
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_next)
-  node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_callbackFunc)
+  // node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_callbackFunc)
 
   node.addHandle(VFNodeConnectionType.inputs, 'input')
   node.addHandle(VFNodeConnectionType.outputs, 'output')
-  node.addHandle(VFNodeConnectionType.callbackUsers, 'callbackUser')
-  node.addHandle(VFNodeConnectionType.callbackFuncs, 'callbackFunc')
+  // node.addHandle(VFNodeConnectionType.callbackUsers, 'callbackUser')
+  // node.addHandle(VFNodeConnectionType.callbackFuncs, 'callbackFunc')
   node.addHandle(VFNodeConnectionType.self, 'attach_output')
   node.addHandleData(VFNodeConnectionType.self, 'self', {
     type: VFNodeConnectionDataType.FromOuter,

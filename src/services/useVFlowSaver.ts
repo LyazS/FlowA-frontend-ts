@@ -25,10 +25,8 @@ export const useVFlowSaver = () => {
       wid: WorkflowID.value,
       items: [{ location: 'vflow', data: toObject() }],
     }
-    const res = await postData('workflow/update', data)
-    if (res.success) {
-      AutoSaveMessage.value = `自动保存 ${new Date().toLocaleTimeString()}`
-    }
+    await postData('workflow/update', data)
+    AutoSaveMessage.value = `自动保存 ${new Date().toLocaleTimeString()}`
   }, 1000)
 
   const autoSaveWorkflow = () => {

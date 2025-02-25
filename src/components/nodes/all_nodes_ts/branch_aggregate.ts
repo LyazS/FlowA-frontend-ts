@@ -38,7 +38,7 @@ export function createNode(): VFNode {
   )
 
   node.addResultWithConnection(
-    { label: '输出变量', type: '', key: 'output', data: null },
+    { label: '输出变量', type: 'Value', key: 'output', data: null },
     'output',
     'D_OUTPUT',
   )

@@ -7,8 +7,8 @@ const _BaseVariableTypeSelections = [
 ] as const satisfies readonly SelectOption[]
 
 const _VariableTypeSelectionsWRef = [
-  ..._BaseVariableTypeSelections,
   { label: '引用', value: 'Ref' },
+  ..._BaseVariableTypeSelections,
 ] as const satisfies readonly SelectOption[]
 
 const _VariableTypesSelectionsWCode = [

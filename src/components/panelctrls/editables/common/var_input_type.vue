@@ -93,7 +93,7 @@ const nswitchSize = computed((): NSwitchSize => {
 
 // 计算属性确保类型安全
 const stringValue = computed(() => {
-  if (props.itemType === 'String') {
+  if (props.itemType === 'String'||props.itemType === 'Ref') {
     if (typeof props.itemValue !== 'string') {
       return undefined
     }

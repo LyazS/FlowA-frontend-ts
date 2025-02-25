@@ -18,5 +18,3 @@ export interface InputNode {
   srcid: string
   srcohid: string
 }
-
-// export interface

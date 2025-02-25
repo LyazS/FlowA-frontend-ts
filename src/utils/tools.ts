@@ -220,3 +220,10 @@ export const formatDateString = (dateString: string): string => {
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
+
+// 通用错误处理工具
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+  return `系统异常: ${JSON.stringify(error)}`
+}

@@ -13,7 +13,7 @@
                 :style="{ width: '8em' }"
                 :consistent-menu-width="false"
               />
-              <template v-if="modelConfig.cpType.value === 'ref'">
+              <template v-if="modelConfig.cpType.value === 'Ref'">
                 <cp_var_select
                   v-model:value="modelConfig.cpValue.value"
                   :options="selfVarSelections"
@@ -41,14 +41,14 @@
                 :style="{ width: '8em' }"
                 :consistent-menu-width="false"
               />
-              <template v-if="config.cpType.value === 'ref'">
+              <template v-if="config.cpType.value === 'Ref'">
                 <cp_var_select
                   v-model:value="config.cpValue.value"
                   :options="selfVarSelections"
                   size="tiny"
                 />
               </template>
-              <template v-else-if="config.cpType.value === 'value'">
+              <template v-else-if="config.cpType.value === 'Value'">
                 <n-slider
                   v-model:value="config.cpValue.value"
                   :min="config.min"
@@ -73,14 +73,14 @@
                 :style="{ width: '8em' }"
                 :consistent-menu-width="false"
               />
-              <template v-if="responseFormatConfig.cpType.value === 'value'">
+              <template v-if="responseFormatConfig.cpType.value === 'Value'">
                 <n-select
                   v-model:value="responseFormatConfig.cpValue.value"
                   :options="response_format_selections"
                   size="tiny"
                 />
               </template>
-              <template v-else-if="responseFormatConfig.cpType.value === 'ref'">
+              <template v-else-if="responseFormatConfig.cpType.value === 'Ref'">
                 <cp_var_select
                   v-model:value="responseFormatConfig.cpValue.value"
                   :options="selfVarSelections"
@@ -217,13 +217,14 @@ const responseFormatConfig: ConfigItem = {
 }
 
 onMounted(async () => {
-  const res = await getData(`workflow/nodeconfig?ntype=LLM_inference`)
-  if (!res.success) {
-    message.error(res.message)
-  } else {
-    modelSelections.value = Object.values(res.data).map((item: any) => {
+  try {
+    const res = await getData(`workflow/nodeconfig?ntype=LLM_inference`)
+    modelSelections.value = Object.values(res).map((item: any) => {
       return { label: item.name, value: item.name }
     })
+  } catch (err) {
+    message.error('获取模型列表失败')
+    console.error(err)
   }
 })
 </script>

@@ -38,7 +38,7 @@ export function createNode(): VFNode {
       label: 'Jinja2 模板',
       type: 'String',
       key: 'Code',
-      data: '<p>{{ arg1 }}<p>\n<hr>\n<p>{{ arg2 }}<p>',
+      data: '<p>{{ arg1 }}</p>\n<hr>\n<p>{{ arg2 }}</p>',
       uitype: 'codeeditor',
       config: { language: 'django' },
     },
