@@ -138,7 +138,7 @@ const runFullFlowAction = async (): Promise<void> => {
             class="glow-btn"
             circle
             tertiary
-            type="success"
+            type="warning"
             @click="isShowJinja2Render = true"
           >
             <template #icon>
@@ -152,7 +152,7 @@ const runFullFlowAction = async (): Promise<void> => {
       </n-popover>
       <n-popover trigger="hover">
         <template #trigger>
-          <n-button class="glow-btn" tertiary circle type="success" @click="stopflow()">
+          <n-button class="glow-btn" tertiary circle type="error" @click="stopflow()">
             <template #icon>
               <n-icon>
                 <Stop />

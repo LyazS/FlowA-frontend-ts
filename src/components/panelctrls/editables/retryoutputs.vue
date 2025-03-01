@@ -33,7 +33,7 @@
             />
             <cp_var_select
               :style="{ width: '50%' }"
-              v-model:value="curSelectedNode.data.results.byId[rid].data"
+              v-model:value="curSelectedNode.data.results.byId[rid].config!.ref"
               :options="selfVarSelections"
               size="small"
             />
@@ -107,6 +107,7 @@
       type: 'String',
       key: '',
       data: "",
+      config: { ref: '' },
     }
     curSelectedNode.value.data.addResultWithConnection(newResult, 'output')
   }

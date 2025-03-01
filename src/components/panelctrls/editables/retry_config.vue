@@ -19,18 +19,31 @@
     <template v-if="retry_type !== 'Immediate'">
       <n-flex class="flexctitem" :wrap="false">
         <n-tag :bordered="false" type="info">重试时长（ms）</n-tag>
-        <n-input-number v-model:value="retry_interval" size="tiny" :min="0" :step="1" />
+        <n-input-number
+          v-model:value="retry_interval"
+          size="tiny"
+          :min="0"
+          :step="1"
+        />
       </n-flex>
       <template v-if="retry_type === 'Exponential'">
         <n-flex class="flexctitem" :wrap="false">
-          <n-tag :bordered="false" type="info"
-            >幂等增长率（{{ exponential_growth }}^{{ retry_interval }}）</n-tag
-          >
+          <n-tag :bordered="false" type="info">幂等基数</n-tag>
+          <n-input-number
+            v-model:value="exponential_base"
+            size="tiny"
+            :min="0"
+            :step="0.1"
+            :precision="2"
+          />
+        </n-flex>
+        <n-flex class="flexctitem" :wrap="false">
+          <n-tag :bordered="false" type="info">幂等增长率</n-tag>
           <n-input-number
             v-model:value="exponential_growth"
             size="tiny"
             :min="0"
-            :step="1"
+            :step="0.1"
             :precision="2"
           />
         </n-flex>
@@ -81,6 +94,7 @@ const retry_type_selection = [
 const num_retries = createComputedConfig<number>('num_retries')
 const retry_type = createComputedConfig<string>('type')
 const retry_interval = createComputedConfig<number>('interval')
+const exponential_base = createComputedConfig<number>('exponential_base')
 const exponential_growth = createComputedConfig<number>('exponential_growth')
 </script>
 

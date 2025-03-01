@@ -106,7 +106,7 @@ interface VFNodeSize {
 }
 
 interface VFNodeNesting {
-  tag: string
+  tag: string | null
   pad: VFNodePadding
   attached_pad: VFNodePadding
   attached_nodes: Partial<Record<VFNodeConnectionDataAttachedType, VFNodeAttachedNode>>

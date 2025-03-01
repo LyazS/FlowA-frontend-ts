@@ -202,7 +202,10 @@ export const useVFlowManager = (): NodeManagementInstance => {
         const nest_regex = /#(\w+)/g
         const pid_matches = parentNode.id.match(nest_regex) || []
         console.debug('parentNode id matches', pid_matches)
-        new_node_id += pid_matches.join('') + `#${pdata.nesting.tag}`
+        new_node_id += pid_matches.join('')
+        if (pdata.nesting.tag) {
+          new_node_id += `#${pdata.nesting.tag}`
+        }
       }
     }
 
