@@ -38,6 +38,11 @@ const { autoSaveWorkflow } = useVFlowSaver()
 
 const editable_tagoutputs = defineAsyncComponent(() => import('./editables/tagoutputs.vue'))
 const editable_packoutputs = defineAsyncComponent(() => import('./editables/packoutputs.vue'))
+const editable_retryoutputs = defineAsyncComponent(() => import('./editables/retryoutputs.vue'))
+const editable_iterretryoutputs = defineAsyncComponent(
+  () => import('./editables/iterretryoutputs.vue'),
+)
+const editable_retryconfig = defineAsyncComponent(() => import('./editables/retry_config.vue'))
 const editable_condoutputs = defineAsyncComponent(() => import('./editables/condoutputs.vue'))
 const editable_codeoutputs = defineAsyncComponent(() => import('./editables/codeoutputs.vue'))
 const editable_iter_input = defineAsyncComponent(() => import('./editables/iter_input.vue'))
@@ -201,6 +206,12 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
       case 'httptimeout':
         component = h(editable_httptimeout, { nodeId: nodeId.value, pid })
         break
+      case 'retry_config':
+        component = h(editable_retryconfig, {
+          pid,
+          selfVarSelections: selfVarSelections.value,
+        })
+        break
     }
     if (component) components[pid] = component
   })
@@ -220,6 +231,15 @@ const outputsComponents = computed<VNode | null>(() => {
       return h(editable_packoutputs, {
         nodeId: nodeId.value,
         selfVarSelections: selfVarSelections_aouput.value,
+      })
+    case 'retryoutputs':
+      return h(editable_retryoutputs, {
+        selfVarSelections: selfVarSelections_aouput.value,
+      })
+    case 'iterretryoutputs':
+      return h(editable_iterretryoutputs, {
+        selfVarSelections: selfVarSelections.value,
+        selfVarSelections_aoutput: selfVarSelections_aouput.value,
       })
     case 'condoutputs':
       return h(editable_condoutputs, {

@@ -11,7 +11,7 @@ import { VFNode } from '@/components/nodes/VFNodeClass'
 import NodeVue from '@/components/nodes/all_nodes_vue/basenode.vue'
 export { NodeVue }
 export function createNode(): VFNode {
-  const node = new VFNode('retry_run', 'basenode', '重复重试').initAsNestedNode('REPEATRETRY')
+  const node = new VFNode('iter_retry_run', 'basenode', '迭代重试').initAsNestedNode('ITERRETRY')
   node.setNodeFlag(VFNodeFlag.isTask | VFNodeFlag.isNested).setSize(200, 200)
 
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_input)
@@ -48,7 +48,19 @@ export function createNode(): VFNode {
     },
     'D_RETRY_CONFIG',
   )
-
-  node.setOutputsUIType('retryoutputs')
+  node.addPayload(
+    {
+      label: '输入输出',
+      type: 'Dict',
+      key: 'retry_inout',
+      data: {
+        input: '',
+        output: '',
+      },
+      uitype: 'iterretryoutputs',
+    },
+    'D_RETRY_INOUT',
+  )
+  node.setOutputsUIType('iterretryoutputs')
   return node
 }
