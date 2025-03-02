@@ -11,6 +11,7 @@ enum VFNodeConnectionDataAttachedType {
   attached_node_output = 'attached_node_output',
   attached_node_next = 'attached_node_next',
   attached_node_callbackFunc = 'attached_node_callbackFunc',
+  attached_node_break = 'attached_node_break',
 }
 enum VFNodeConnectionType {
   self = 'self',

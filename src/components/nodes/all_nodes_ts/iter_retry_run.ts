@@ -16,6 +16,7 @@ export function createNode(): VFNode {
 
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_input)
   node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_output)
+  node.addAttachedNode(VFNodeConnectionDataAttachedType.attached_node_break)
 
   node.addHandle(VFNodeConnectionType.inputs, 'input')
   node.addHandle(VFNodeConnectionType.outputs, 'output')
@@ -33,6 +34,17 @@ export function createNode(): VFNode {
     inputKey: 'input',
   })
 
+  const pid = node.addPayload({
+    label: '迭代项目',
+    type: 'IterRetryItem',
+    key: 'iter_item',
+    data: null,
+    uitype: 'texttag',
+  })
+  node.addHandleData(VFNodeConnectionType.attach, 'attach', {
+    type: VFNodeConnectionDataType.FromInner,
+    path: ['payloads', pid],
+  })
   node.addPayload(
     {
       label: '重试设置',
@@ -62,6 +74,11 @@ export function createNode(): VFNode {
     },
     'D_RETRY_INOUT',
   )
-  node.setOutputsUIType('iterretryoutputs')
+  node.addResultWithConnection(
+    { label: '输出', type: 'String', key: 'output', data: '' },
+    'output',
+    'D_OUTPUT',
+  )
+  node.setOutputsUIType('tagoutputs')
   return node
 }

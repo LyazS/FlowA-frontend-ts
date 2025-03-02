@@ -212,6 +212,11 @@ const payloadComponents = computed<Record<string, VNode>>(() => {
           selfVarSelections: selfVarSelections.value,
         })
         break
+      case 'iterretryoutputs':
+        component = h(editable_iterretryoutputs, {
+          selfVarSelections: selfVarSelections.value,
+          selfVarSelections_aoutput: selfVarSelections_aouput.value,
+        })
     }
     if (component) components[pid] = component
   })
@@ -235,11 +240,6 @@ const outputsComponents = computed<VNode | null>(() => {
     case 'retryoutputs':
       return h(editable_retryoutputs, {
         selfVarSelections: selfVarSelections_aouput.value,
-      })
-    case 'iterretryoutputs':
-      return h(editable_iterretryoutputs, {
-        selfVarSelections: selfVarSelections.value,
-        selfVarSelections_aoutput: selfVarSelections_aouput.value,
       })
     case 'condoutputs':
       return h(editable_condoutputs, {

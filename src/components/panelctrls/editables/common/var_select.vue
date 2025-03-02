@@ -22,7 +22,7 @@ import { isString } from '@/utils/tools'
 
 const props = withDefaults(
   defineProps<{
-    value: string | number | undefined | null
+    value: string | undefined | null
     options: SelectOption[]
     size?: 'tiny' | 'small' | 'medium' | 'large'
     style?: Record<string, string | number>
@@ -36,11 +36,11 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  'update:value': [value: string | number]
+  'update:value': [value: string]
 }>()
 
 // 更新值的方法
-const updateValue = (value: string | number): void => {
+const updateValue = (value: string): void => {
   emit('update:value', value)
 }
 
